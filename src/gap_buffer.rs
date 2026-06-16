@@ -82,6 +82,20 @@ impl GapBuffer
 		return true;
 	}
 	
+	pub fn delete_selected(&mut self, anchor: usize)
+	{
+		let gap_size = self.gap_end - self.gap_start;
+		
+		if (anchor > self.gap_start)
+		{
+			self.gap_end = anchor + gap_size;
+		}
+		else if (anchor < self.gap_start)
+		{
+			self.gap_start = anchor;
+		}
+	}
+	
 	pub fn move_gap_to(&mut self, abs_pos: usize)
 	{
 		let safe_pos = self.logic_len();

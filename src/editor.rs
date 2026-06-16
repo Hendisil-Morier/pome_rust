@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-
+use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use crate::gap_buffer::{GapBuffer, Position};
 
 #[derive(Default, Clone, Copy)]
@@ -133,7 +133,7 @@ impl Editor
 	pub fn set_mode(&mut self, mode_name: &str)
 	{
 		if let Some(cur) = &self.mode_info.cur_mode
-		{self.call_mode_hook(mode_name, "on_exit");}
+		{self.call_mode_hook(cur, "on_exit");}
 		
 		self.mode_info.cur_mode = Some(mode_name.to_string());
 		self.mode_info.change_count += 1;
@@ -155,7 +155,7 @@ impl Editor
 		else {return;}
 	}
 	
-	pub fn call_keymap(&mut self, key_str: &str) -> bool
+	pub fn call_keymap(&self, key_str: &str) -> bool
 	{
 		let mode_table: mlua::Table;
 		if let Some(s) = &self.mode_info.cur_mode
@@ -185,10 +185,8 @@ impl Editor
 		return true;
 	}
 	
-	pub fn call_default(&self, ch: u32) -> bool
+	pub fn call_default(&self, ch: &str) -> bool
 	{
-		if (ch == 0) {return false;}
-		
 		let mode_table: mlua::Table;
 		if let Some(s) = &self.mode_info.cur_mode
 		{
@@ -210,5 +208,99 @@ impl Editor
 		}
 		
 		return true;
+	}
+	
+	pub fn quit(&mut self)
+	{
+		self.running = false;
+	}
+}
+
+fn keyevent_to_string(code: KeyCode, modifier: KeyModifiers) -> Option<String>
+{
+	if modifier.contains(KeyModifiers::CONTROL)
+	{
+		if let KeyCode::Char(c) = code
+		{
+			return Some(format!("ctrl+{}", c));
+		}
+	}
+	
+	let result;
+	match code
+	{
+		KeyCode::Char(c) => result = Some(c.to_string()),
+		KeyCode::Left => result = Some("arrow_left".to_string()),
+		KeyCode::Right => result = Some("arrow_right".to_string()),
+		KeyCode::Up => result = Some("arrow_up".to_string()),
+		KeyCode::Down => result = Some("arrow_down".to_string()),
+		KeyCode::Enter => result = Some("enter".to_string()),
+		KeyCode::Backspace => result = Some("backspace".to_string()),
+		KeyCode::Delete => result = Some("delete".to_string()),
+		KeyCode::Esc => result = Some("esc".to_string()),
+		_ => result = None,
+	};
+	
+	return result;
+}
+
+impl Editor
+{
+	pub fn process_key(&mut self, event: KeyEvent)
+	{
+		if (!event.is_press() && !event.is_repeat())
+		{return;}
+		
+		let key_str: String;
+		
+		if let Some(s) = keyevent_to_string(event.code, event.modifiers)
+		{key_str = s;}
+		else {return;}
+		
+		let mode_before = self.mode_info.change_count;
+		
+		let mut handled = self.call_keymap(&key_str);
+		if (!handled)
+		{handled = self.call_default(&key_str);}
+		
+		if (!handled) {/*TODO: handling empty mode table*/}
+		
+		let mode_changed = mode_before == self.mode_info.change_count;
+		
+		let current_is_minor: bool;
+		
+		if let Some(m) = &self.mode_info.cur_mode
+		{
+			current_is_minor = self.is_minor_mode(m);
+		}
+		else {return;}
+		
+		let saved_is_major: bool;
+		
+		if let Some(m) = &self.mode_info.prev_mode
+		{
+			saved_is_major = !self.is_minor_mode(m);
+		}
+		else {saved_is_major = false;}
+		
+		if (mode_changed && current_is_minor && saved_is_major)
+		{self.restore_mode();}
+	}
+	
+	pub fn update_scroll(&mut self, screen_h: usize)
+	{
+		let cur_pos = self.buffer.cursor_pos();
+		let screen_rows = screen_h - 1;
+		
+		if (cur_pos.y < self.row_offset)
+		{self.row_offset = cur_pos.y;}
+		
+		if (cur_pos.y >= self.row_offset + screen_rows)
+		{self.row_offset = cur_pos.y - screen_rows + 1;}
+	}
+	
+	pub fn delete_selected(&mut self)
+	{
+		self.buffer.delete_selected(self.cur_info.anchor);
 	}
 }
