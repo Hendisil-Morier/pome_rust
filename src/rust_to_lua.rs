@@ -85,8 +85,10 @@ mod helpers
 
 pub mod api
 {
-	use mlua::{Lua, Value::Nil};
-	use crate::{gap_buffer::Position};
+	use std::path::PathBuf;
+
+use mlua::{Lua, Value::Nil};
+	use crate::{file_handling::save_file, gap_buffer::Position};
 
 	use super::helpers::*;
 	
@@ -287,6 +289,63 @@ pub mod api
 		return Ok(());
 	}
 	
+	pub fn lua_save_file(lua: &Lua, _:()) -> mlua::Result<()>
+	{
+		let editor = unsafe {get_editor(lua)?};
+		save_file(editor)?;
+		return Ok(());
+	}
+	
+	pub fn lua_load_config(lua: &Lua, filename: Option<String>)
+	-> mlua::Result<()>
+	{
+		let editor = unsafe {get_editor(lua)?};
+		
+		let path = match filename
+			{
+				Some(f) => f,
+				None => editor.config_file.to_string_lossy().to_string(),
+			};
+		
+		lua.load(std::path::Path::new(&path)).exec()?;
+		
+		return Ok(());
+	}
+	
+	pub fn lua_set_filename(lua: &Lua, filename: String)
+	-> mlua::Result<()>
+	{
+		let editor = unsafe {get_editor(lua)?};
+		editor.filename = Some(PathBuf::from(filename));
+		Ok(())
+	}
+	
+	pub fn lua_get_filename(lua: &Lua, _: ())
+	-> mlua::Result<Option<String>>
+	{
+		let editor = unsafe {get_editor(lua)?};
+
+		let result = editor.filename.as_ref()
+    .map(|p| p.to_string_lossy().to_string());
+		
+		return Ok(result);
+	}
+	
+	pub fn lua_get_config_dir(lua: &Lua, _: ()) -> mlua::Result<String>
+	{
+	    let editor = unsafe { get_editor(lua)? };
+	
+	    return Ok(editor.config_dir.to_string_lossy().to_string());
+	}
+	
+	pub fn lua_set_config_dir(lua: &Lua, path: String) -> mlua::Result<()>
+	{
+	    let editor = unsafe { get_editor(lua)? };
+	
+	    editor.config_dir = PathBuf::from(path);
+	
+	    return Ok(());
+	}	
 	pub fn lua_forward_match(lua: &Lua,
 		(matcher, from_x, from_y): (u8, Option<usize>, Option<usize>))
 	-> mlua::Result<mlua::MultiValue>

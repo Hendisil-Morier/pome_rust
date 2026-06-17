@@ -1,9 +1,7 @@
-require("config.runtime")
+local config_dir = pome.get_config_dir()
+package.path = config_dir .. "/?.lua;" .. config_dir .. "/?/init.lua;" .. package.path
 
-local script_dir = (...):match("(.*[/\\])") or ""
-package.path = script_dir .. "?.lua;" ..
-               script_dir .. "?/init.lua;" ..
-               package.path
+require("runtime")
 
 -- Hot‑reload stdlib and modes on every config reload
 for k in pairs(package.loaded) do

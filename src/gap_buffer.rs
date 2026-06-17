@@ -229,6 +229,12 @@ impl GapBuffer
 
 impl GapBuffer
 {
+
+	pub fn cursor_abspos(&self) -> usize
+	{
+		return self.gap_start;
+	}
+	
 	pub fn abspos_to_repos(&self, abs_pos: usize) -> Position
 	{
 		let abs_pos = abs_pos.min(self.logic_len());

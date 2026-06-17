@@ -211,32 +211,38 @@ impl Editor
 	}
 }
 
-fn keyevent_to_string(code: KeyCode, modifier: KeyModifiers) -> Option<String>
+fn keyevent_to_string(code: KeyCode, modifiers: KeyModifiers) -> Option<String>
 {
-	if modifier.contains(KeyModifiers::CONTROL)
-	{
-		if let KeyCode::Char(c) = code
-		{
-			return Some(format!("ctrl+{}", c));
-		}
-	}
-	
-	let result;
-	match code
-	{
-		KeyCode::Char(c) => result = Some(c.to_string()),
-		KeyCode::Left => result = Some("arrow_left".to_string()),
-		KeyCode::Right => result = Some("arrow_right".to_string()),
-		KeyCode::Up => result = Some("arrow_up".to_string()),
-		KeyCode::Down => result = Some("arrow_down".to_string()),
-		KeyCode::Enter => result = Some("enter".to_string()),
-		KeyCode::Backspace => result = Some("backspace".to_string()),
-		KeyCode::Delete => result = Some("delete".to_string()),
-		KeyCode::Esc => result = Some("esc".to_string()),
-		_ => result = None,
-	};
-	
-	return result;
+    let mut result = String::new();
+
+    if modifiers.contains(KeyModifiers::ALT)
+    {
+        result.push_str("alt+");
+    }
+    if modifiers.contains(KeyModifiers::CONTROL)
+    {
+        result.push_str("ctrl+");
+    }
+    if modifiers.contains(KeyModifiers::SHIFT)
+    {
+        result.push_str("shift+");
+    }
+
+    match code
+    {
+        KeyCode::Char(c)   => result.push_str(&c.to_string()),
+        KeyCode::Left      => result.push_str("arrow_left"),
+        KeyCode::Right     => result.push_str("arrow_right"),
+        KeyCode::Up        => result.push_str("arrow_up"),
+        KeyCode::Down      => result.push_str("arrow_down"),
+        KeyCode::Enter     => result.push_str("enter"),
+        KeyCode::Backspace => result.push_str("backspace"),
+        KeyCode::Delete    => result.push_str("delete"),
+        KeyCode::Esc       => result.push_str("esc"),
+        _                  => return None,
+    }
+
+    return Some(result);
 }
 
 impl Editor
@@ -260,7 +266,7 @@ impl Editor
 		
 		if (!handled) {/*TODO: handling empty mode table*/}
 		
-		let mode_changed = mode_before == self.mode_info.change_count;
+		let mode_unchanged = mode_before == self.mode_info.change_count;
 		
 		let current_is_minor: bool;
 		
@@ -278,7 +284,7 @@ impl Editor
 		}
 		else {saved_is_major = false;}
 		
-		if (mode_changed && current_is_minor && saved_is_major)
+		if (mode_unchanged && current_is_minor && saved_is_major)
 		{self.restore_mode();}
 	}
 	
