@@ -13,6 +13,16 @@ pub struct Position
 	pub y: usize,
 }
 
+impl Position
+{
+	pub fn new(x: usize, y: usize) -> Self
+	{
+		return Self{
+			x, y
+		};
+	}
+}
+
 pub struct GapBuffer
 {
   buf: Vec<u8>,

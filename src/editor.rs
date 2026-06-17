@@ -1,6 +1,6 @@
 use std::path::PathBuf;
-use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use crate::gap_buffer::{GapBuffer, Position};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crate::gap_buffer::{GapBuffer};
 
 #[derive(Default, Clone, Copy)]
 pub struct Dimension
@@ -11,7 +11,7 @@ pub struct Dimension
 
 pub struct CursorInfo
 {
-	pub pos: Position,
+	// pub pos: Position,
 	pub anchor: usize,
 	pub selecting: bool,
 }
@@ -82,7 +82,7 @@ impl Editor
 		};
 		
 		let cur_info = CursorInfo{
-			pos: Position::default(),
+			// pos: Position::default(),
 			anchor: 0,
 			selecting: false,
 		};
@@ -132,13 +132,8 @@ impl Editor
 	
 	pub fn set_mode(&mut self, mode_name: &str)
 	{
-		if let Some(cur) = &self.mode_info.cur_mode
-		{self.call_mode_hook(cur, "on_exit");}
-		
 		self.mode_info.cur_mode = Some(mode_name.to_string());
 		self.mode_info.change_count += 1;
-		
-		self.call_mode_hook(mode_name, "on_enter");
 	}
 	
 	pub fn save_mode(&mut self, mode_name: &str)
@@ -302,5 +297,16 @@ impl Editor
 	pub fn delete_selected(&mut self)
 	{
 		self.buffer.delete_selected(self.cur_info.anchor);
+	}
+	
+	pub fn set_anchor(&mut self, abs_pos: usize)
+	{
+		self.cur_info.anchor = abs_pos;
+		self.cur_info.selecting = true;
+	}
+	
+	pub fn clear_anchor(&mut self)
+	{
+		self.cur_info.selecting = false;
 	}
 }
