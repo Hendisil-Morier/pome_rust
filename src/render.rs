@@ -1,15 +1,46 @@
+//TODO: rewrite the entire thing once the panel system mature
+
 use ratatui::Frame;
 use ratatui::layout::Position as RatPosition;
 use ratatui::style::{Color, Style};
 use ratatui::text::Span;
 use crate::editor::Editor;
 
-const TAB_WIDTH: usize = 4;
+const TAB_WIDTH: usize = 2;
 
 pub fn render(frame: &mut Frame, editor: &Editor)
 {
     render_buffer(frame, editor);
     render_status_bar(frame, editor);
+}
+
+/// Compute the screen column of the cursor by expanding tabs
+fn visual_x(editor: &Editor, cursor_abs: usize, cursor_y: usize) -> usize
+{
+    // Get the start of the line the cursor is on
+    let line_start = editor.buffer.get_line_start(cursor_y);
+
+    let mut col = 0;
+    for i in line_start..cursor_abs {
+        let byte = editor.buffer.char_at(i);
+        match byte {
+            Some(b'\t') => {
+                // Advance to next tab stop
+                col = (col / TAB_WIDTH + 1) * TAB_WIDTH;
+            },
+            Some(b'\n') => {
+                // Should not happen because cursor_abs points to somewhere on this line
+                // (the loop stops before cursor_abs, and if cursor is on newline, cursor_abs
+                // would be at the newline; but cursor_y is the line after, so this case is avoided)
+                break;
+            },
+            Some(_) => {
+                col += 1;
+            },
+            None => break, // shouldn't happen either
+        }
+    }
+    col
 }
 
 fn render_buffer(frame: &mut Frame, editor: &Editor)
@@ -93,6 +124,15 @@ fn render_buffer(frame: &mut Frame, editor: &Editor)
 
         screen_x += 1;
     }
+
+    // ------- cursor placement (fixed) -------
+    let cur_pos = editor.buffer.cursor_pos();
+    let cursor_visual_x = visual_x(editor, cursor_abs, cur_pos.y);
+
+    frame.set_cursor_position(RatPosition {
+        x: cursor_visual_x as u16,
+        y: (cur_pos.y - editor.row_offset) as u16,
+    });
 }
 
 fn render_status_bar(frame: &mut Frame, editor: &Editor)
@@ -136,9 +176,4 @@ fn render_status_bar(frame: &mut Frame, editor: &Editor)
             cell.set_style(style);
         }
     }
-
-    frame.set_cursor_position(RatPosition {
-        x: cur_pos.x as u16,
-        y: (cur_pos.y - editor.row_offset) as u16,
-    });
 }

@@ -28,11 +28,11 @@ end
 -- Simple character deletion (forward and backward)
 -- You can either wrap the Pome API directly or add small safety checks.
 function M.delete_before_cursor()
-  pome.delete_before_cursor()
+  pome.delete_before()
 end
 
 function M.delete_after_cursor()
-  pome.delete_after_cursor()
+  pome.delete_after()
 end
 
 -- Insert a character at the cursor (used by insert mode's default handler)

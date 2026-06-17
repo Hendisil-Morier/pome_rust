@@ -5,18 +5,18 @@ local base = require("modes.base_keymap")
 local function make_visual_config()
   local keymap = inherit(
     {
-      [key_press.h] = std.cursor_left,
-      [key_press.l] = std.cursor_right,
-      [key_press.k] = std.cursor_up,
-      [key_press.j] = std.cursor_down,
+      [key.h] = std.cursor_left,
+      [key.l] = std.cursor_right,
+      [key.k] = std.cursor_up,
+      [key.j] = std.cursor_down,
 
-      [key_press.d] = function()
+      [key.d] = function()
         pome.delete_selected()
         pome.clear_anchor()
         std.safe_set_mode("normal")
       end,
 
-      [key_press.v] = bind(std.safe_set_mode, "normal"),
+      [key.v] = bind(std.safe_set_mode, "normal"),
     },
     base
   )

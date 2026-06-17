@@ -5,7 +5,7 @@ local base = require("modes.base_keymap")
 local function make_g_pending_config()
   local keymap = inherit(
     {
-      [key_press.g] = bind(std.goto_firstline),   -- gg → top of file
+      [key.g] = bind(std.goto_firstline),   -- gg → top of file
     },
     base
   )

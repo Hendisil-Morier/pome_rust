@@ -71,12 +71,13 @@ function M.cursor_down()
 end
 
 function M.cursor_left()
-  pome.move_cursor(direction.left, 1)
+  pome.move_cursor("left", 1)
   state.prefer_x = pome.get_cursor_pos()
 end
 
 function M.cursor_right()
-  pome.move_cursor(direction.right, 1)
+	local t = ('\t'):byte() == pome.char_at();
+  pome.move_cursor("right", 1)
   state.prefer_x = pome.get_cursor_pos()
 end
 
