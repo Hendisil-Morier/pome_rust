@@ -1,29 +1,7 @@
-pub enum Direction
-{
-	Left,
-	Right,
-	Up,
-	Down,
-}
+// old gap buffer implement.
+// kept for nostalgia purpose.
 
-#[derive(Default, Clone, Copy)]
-pub struct Position
-{
-	pub x: usize,
-	pub y: usize,
-}
-
-impl Position
-{
-	pub fn new(x: usize, y: usize) -> Self
-	{
-		return Self{
-			x, y
-		};
-	}
-}
-
-pub struct GapBuffer
+/*pub struct GapBuffer
 {
   buf: Vec<u8>,
   gap_start: usize,
@@ -343,3 +321,4 @@ impl GapBuffer
 		}
 	}
 }
+*/

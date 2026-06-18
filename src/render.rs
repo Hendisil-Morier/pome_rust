@@ -18,17 +18,17 @@ pub fn render(frame: &mut Frame, editor: &Editor)
 fn visual_x(editor: &Editor, cursor_abs: usize, cursor_y: usize) -> usize
 {
     // Get the start of the line the cursor is on
-    let line_start = editor.buffer.get_line_start(cursor_y);
+    let line_start = editor.buffer.line_to_char(cursor_y);
 
     let mut col = 0;
     for i in line_start..cursor_abs {
-        let byte = editor.buffer.char_at(i);
+        let byte = editor.buffer.get_char(i);
         match byte {
-            Some(b'\t') => {
+            Some('\t') => {
                 // Advance to next tab stop
                 col = (col / TAB_WIDTH + 1) * TAB_WIDTH;
             },
-            Some(b'\n') => {
+            Some('\n') => {
                 // Should not happen because cursor_abs points to somewhere on this line
                 // (the loop stops before cursor_abs, and if cursor is on newline, cursor_abs
                 // would be at the newline; but cursor_y is the line after, so this case is avoided)
@@ -49,24 +49,40 @@ fn render_buffer(frame: &mut Frame, editor: &Editor)
     let screen_rows = area.height as usize - 1;
     let buf = frame.buffer_mut();
 
-    let logic_len = editor.buffer.logic_len();
+    let logic_len = editor.buffer.len_chars();
+    let cursor_abs = editor.cur_info.abs_pos;
+    
+    let anchor;
+    let select_start: i64;
+    let select_end: i64;
+    let has_anchor;
 
-    let cursor_abs = editor.buffer.cursor_abspos();
-    let select_start = editor.cur_info.anchor.min(cursor_abs);
-    let select_end   = editor.cur_info.anchor.max(cursor_abs);
-
+    if let Some(a) = editor.cur_info.anchor
+    {
+      anchor = a;
+      select_start = anchor.min(cursor_abs) as i64;
+      select_end   = anchor.max(cursor_abs) as i64;
+      has_anchor = true;
+    }
+    else
+    {
+      select_end = -1;
+      select_start = -1;
+      has_anchor = false;
+    }
+    
     let mut screen_x: usize = 0;
     let mut screen_y: usize = 0;
 
     for i in 0..logic_len
     {
-        let c = match editor.buffer.char_at(i)
+        let c = match editor.buffer.get_char(i)
         {
             Some(b) => b,
             None    => break,
         };
 
-        if c == b'\n'
+        if c == '\n'
         {
             screen_y += 1;
             screen_x = 0;
@@ -78,14 +94,14 @@ fn render_buffer(frame: &mut Frame, editor: &Editor)
 
         if !visible { continue; }
 
-        let in_selection = editor.cur_info.selecting
-            && i >= select_start
-            && i < select_end;
+        let in_selection = editor.cur_info.selecting && has_anchor
+            && i as i64 >= select_start
+            && (i as i64) < select_end;
 
         let bg = if in_selection { Color::Blue } else { Color::Reset };
         let style = Style::default().bg(bg);
 
-        if c == b'\t'
+        if c == '\t'
         {
             let next_tab = (screen_x / TAB_WIDTH + 1) * TAB_WIDTH;
             while screen_x < next_tab
@@ -126,7 +142,7 @@ fn render_buffer(frame: &mut Frame, editor: &Editor)
     }
 
     // ------- cursor placement (fixed) -------
-    let cur_pos = editor.buffer.cursor_pos();
+    let cur_pos = editor.cursor_pos();
     let cursor_visual_x = visual_x(editor, cursor_abs, cur_pos.y);
 
     frame.set_cursor_position(RatPosition {
@@ -138,7 +154,7 @@ fn render_buffer(frame: &mut Frame, editor: &Editor)
 fn render_status_bar(frame: &mut Frame, editor: &Editor)
 {
     let area = frame.area();
-    let cur_pos = editor.buffer.cursor_pos();
+    let cur_pos = editor.cursor_pos();
 
     let mode = editor.mode_info.cur_mode
         .as_deref()

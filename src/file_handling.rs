@@ -1,5 +1,7 @@
-use std::io::{Read, Write};
+use std::io::{BufReader, BufWriter};
 use std::fs::File;
+use ropey::Rope;
+
 use crate::editor::Editor;
 
 pub fn load_file(editor: &mut Editor) -> std::io::Result<()>
@@ -10,14 +12,9 @@ pub fn load_file(editor: &mut Editor) -> std::io::Result<()>
 			None => return Ok(()),
 		};
 	
-	let mut file = File::open(path)?;
-	let mut content = Vec::new();
-	file.read_to_end(&mut content)?;
-	
-	for byte in content
-	{
-		editor.buffer.insert(byte);
-	}
+	let file = File::open(path)?;
+
+	editor.buffer = Rope::from_reader(BufReader::new(file))?;
 	
 	return Ok(());
 }
@@ -37,16 +34,9 @@ pub fn save_file(editor: &Editor) -> std::io::Result<()>
 			}
 		};
 	
-	let mut file = File::create(path)?;
-	let mut buf = Vec::<u8>::new();
+	let file = File::create(path)?;
 	
-	for i in 0..editor.buffer.logic_len()
-	{
-		if let Some(byte) = editor.buffer.char_at(i)
-		{buf.push(byte);}
-	}
-	
-	file.write_all(&buf)?;
+	editor.buffer.write_to(BufWriter::new(file))?;
 	
 	return Ok(());
 }

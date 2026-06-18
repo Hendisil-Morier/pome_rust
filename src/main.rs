@@ -2,7 +2,7 @@ use std::io;
 use crossterm::event::{self, Event};
 use ratatui::DefaultTerminal;
 
-mod gap_buffer;
+mod text_buffer;
 mod editor;
 mod lua_api;
 mod rust_to_lua;
@@ -50,7 +50,7 @@ fn main() -> io::Result<()>
     }
 
     load_file(&mut editor)?;
-    editor.buffer.move_gap_to(0);
+    editor.move_cursor_to(0);
     editor.running = true;
 
     let mut terminal = ratatui::init();

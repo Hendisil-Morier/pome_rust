@@ -1,18 +1,18 @@
 use std::path::PathBuf;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use crate::gap_buffer::{GapBuffer};
+use ropey::Rope;
 
-#[derive(Default, Clone, Copy)]
-pub struct Dimension
-{
-	pub w: usize,
-	pub h: usize,
-}
+// #[derive(Default, Clone, Copy)]
+// pub struct Dimension
+// {
+// 	pub w: usize,
+// 	pub h: usize,
+// }
 
 pub struct CursorInfo
 {
-	// pub pos: Position,
-	pub anchor: usize,
+	pub abs_pos: usize,
+	pub anchor: Option<usize>,
 	pub selecting: bool,
 }
 
@@ -30,8 +30,8 @@ pub struct Editor
 	pub config_file: PathBuf,
 	pub lua: mlua::Lua,
 
-	pub buffer: GapBuffer,
-	pub dim: Dimension,
+	pub buffer: ropey::Rope,
+	// pub dim: Dimension,
 
 	pub mode_info: ModeInfo,
 	pub cur_info: CursorInfo,
@@ -70,8 +70,8 @@ impl Editor
 	-> Self
 	{
 		let lua = mlua::Lua::new();
-		let buffer = GapBuffer::new();
-		let dim = Dimension::default();
+		let buffer = Rope::new();
+		// let dim = Dimension::default();
 		let row_offset = 0;
 		let running = false;
 		
@@ -82,8 +82,8 @@ impl Editor
 		};
 		
 		let cur_info = CursorInfo{
-			// pos: Position::default(),
-			anchor: 0,
+			abs_pos: 0,
+			anchor: None,
 			selecting: false,
 		};
 		
@@ -93,7 +93,7 @@ impl Editor
 			config_file,
 			lua,
 			buffer,
-			dim,
+			// dim,
 			mode_info,
 			cur_info,
 			row_offset,
@@ -290,7 +290,7 @@ impl Editor
 	
 	pub fn update_scroll(&mut self, screen_h: usize)
 	{
-		let cur_pos = self.buffer.cursor_pos();
+		let cur_pos = self.cursor_pos();
 		let screen_rows = screen_h - 1;
 		
 		if (cur_pos.y < self.row_offset)
@@ -302,12 +302,26 @@ impl Editor
 	
 	pub fn delete_selected(&mut self)
 	{
-		self.buffer.delete_selected(self.cur_info.anchor);
+		// self.buffer.delete_selected(self.cur_info.anchor);
+		if self.cur_info.selecting == false
+		{return;}
+		
+		let anchor;
+		if let Some(a) = self.cur_info.anchor
+		{anchor = a;}
+		else {return;}
+		
+		let cur_abs_pos = self.cur_info.abs_pos;
+		
+		let start = anchor.min(cur_abs_pos);
+		let end = anchor.max(cur_abs_pos);
+		
+		self.buffer.remove(start..end);
 	}
 	
 	pub fn set_anchor(&mut self, abs_pos: usize)
 	{
-		self.cur_info.anchor = abs_pos;
+		self.cur_info.anchor = Some(abs_pos);
 		self.cur_info.selecting = true;
 	}
 	
