@@ -92,20 +92,24 @@ use mlua::{Lua, Value::Nil};
 
 	use super::helpers::*;
 	
-	pub fn lua_move_cursor(lua: &Lua, (dir, times): (String, usize)) -> mlua::Result<()>
+	pub fn lua_move_cursor(lua: &Lua, (dir, times): (String, i64)) -> mlua::Result<()>
 	{
+		if times < 0 {return Ok(());}
+		
 		let editor = unsafe {get_editor(lua)?};
 		let direction = direction_from_str(&dir)?;
-		editor.buffer.move_gap(times, direction);
+		editor.buffer.move_gap(times as usize, direction);
 		
 		return Ok(());
 	}	
 	
-	pub fn lua_move_cursor_to(lua: &Lua, (x, y): (usize, usize))
+	pub fn lua_move_cursor_to(lua: &Lua, (x, y): (i64, i64))
 	-> mlua::Result<()>
 	{
+		if x < 0 || y < 0 {return Ok(());}
+		
 		let editor = unsafe {get_editor(lua)?};
-		let abs_pos = editor.buffer.repos_to_abspos(Position { x, y });
+		let abs_pos = editor.buffer.repos_to_abspos(Position { x: x as usize, y: y as usize });
 		editor.buffer.move_gap_to(abs_pos);
 		
 		return Ok(());
@@ -212,15 +216,26 @@ use mlua::{Lua, Value::Nil};
 		return Ok((cur_pos.x, cur_pos.y));
 	}
 	
-	pub fn lua_get_line_end(lua: &Lua, line: Option<usize>)
-	-> mlua::Result<(usize)>
+	pub fn lua_get_line_end(lua: &Lua, lline: Option<i64>)
+	-> mlua::Result<mlua::Value>
 	{
 		let editor = unsafe {get_editor(lua)?};
 		
-		let target = line.unwrap_or(editor.buffer.cursor_pos().y);
-		let line_end = editor.buffer.get_line_length(target);
+		let line;
+		if let Some(l) = lline
+		{
+			if l < 0 {return Ok(mlua::Value::Nil);}
+			
+			let max = editor.buffer.max_line_index();
+			if l as usize > max {return Ok(mlua::Value::Nil);}
+			
+			line = l as usize;
+		}
+		else {line = editor.buffer.cursor_pos().y;}
+				
+		let line_end = editor.buffer.get_line_length(line);
 		
-		return Ok((line_end));
+		Ok(mlua::Value::Integer(line_end as i64))
 	}
 	
 	pub fn lua_char_at(lua: &Lua, (x, y): (Option<usize>, Option<usize>))
@@ -265,12 +280,22 @@ use mlua::{Lua, Value::Nil};
 		return Ok(());
 	}
 	
-	pub fn lua_call_mode_hook(lua: &Lua, (mode_name, hook_name): (String, String))
-	-> mlua::Result<()>
+	pub fn lua_call_mode_hook(lua: &Lua, (mode_name, hook_name): (Option<String>, Option<String>))
+	-> mlua::Result<bool>
 	{
+		let m_name;
+	  if let Some(s) = mode_name
+		{m_name = s;}
+		else {return Ok(false);}
+		
+		let h_name;
+		if let Some(s) = hook_name
+		{h_name = s;}
+		else {return Ok(false);}
+		
 		let editor = unsafe {get_editor(lua)?};
-		editor.call_mode_hook(&mode_name, &hook_name);
-		return Ok(());
+		editor.call_mode_hook(&m_name, &h_name);
+		return Ok(true);
 	}
 	
 	pub fn lua_delete_after(lua: &Lua, _: ())

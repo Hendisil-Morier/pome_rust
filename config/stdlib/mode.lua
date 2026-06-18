@@ -20,6 +20,7 @@ end
 -- then switches to the given minor mode.
 function M.enter_minor_mode(name)
   local cur_mode = pome.get_current_mode()
+  if not cur_mode then return end
   if not pome.is_minor_mode(cur_mode) then
     pome.save_mode(cur_mode)
   end

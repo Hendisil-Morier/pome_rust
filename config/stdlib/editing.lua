@@ -44,6 +44,7 @@ end
 function M.delete_to_line_end()
   local x, y = pome.get_cursor_pos()
   local line_end = pome.get_line_end(y)
+  if not line_end then return end
   if x == line_end then
     -- Nothing to delete
     return

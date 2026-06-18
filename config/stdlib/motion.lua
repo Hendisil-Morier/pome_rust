@@ -47,6 +47,7 @@ local function move_cursor_to(x, y)
   if not x or not y then return end
 
   local line_end = pome.get_line_end(y)
+  if not line_end then return end
   if x > line_end then
     x = line_end
   end
