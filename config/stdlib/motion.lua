@@ -76,7 +76,6 @@ function M.cursor_left()
 end
 
 function M.cursor_right()
-	local t = ('\t'):byte() == pome.char_at();
   pome.move_cursor("right", 1)
   state.prefer_x = pome.get_cursor_pos()
 end
