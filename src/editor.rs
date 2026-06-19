@@ -145,6 +145,8 @@ impl Editor
 
 		let sequences_table = self.get_mode_table(mode_name)
 		.and_then(|t| t.get::<mlua::Table>("sequences").ok());
+
+		self.mode_info.sequences = sequences_table;
 	}
 	
 	pub fn save_mode(&mut self, mode_name: &str)
@@ -348,15 +350,18 @@ impl Editor
 	fn process_sequences(&mut self, key_seqs: &str) -> bool
 	{
 		let mode_info = &mut self.mode_info;
-		let sequences = match mode_info.sequences
+		let sequences = match &mode_info.sequences
 		{
 			Some(s) => s,
-			None => return false,
+			None => {
+				mode_info.pending_seq.clear();
+				return false;
+			}
 		};
 
 		if mode_info.pending_seq.is_empty()
 		{
-			mode_info.pending_seq = key_seqs().to_string();
+			mode_info.pending_seq = key_seqs.to_string();
 		}
 		else
 		{
@@ -364,24 +369,28 @@ impl Editor
 			mode_info.pending_seq.push_str(key_seqs);
 		}
 
-		let pending_seq = &mode_info.pending_seq;
+		let immut_pending_seq = &mode_info.pending_seq;
 		let pending_func;
 
-		if let Ok(func) = sequences.get::<mlua::Function>(pending_seq.as_string)
+		if let Ok(func) = sequences.get::<mlua::Function>(immut_pending_seq.as_str())
 		{pending_func = func;}
 		else {return false;}
+
+		if is_in_table(sequences, key_seqs)
+		{return true;}
 
 		if let Err(err) = pending_func.call::<()>(())
 		{
 			eprintln!("Sequence action error: {err}");
 		}
-		else {return true;}
-
-		if is_in_table(&sequences, pending_seq)
-		{return true;}
+		else
+		{
+			self.mode_info.pending_seq.clear();
+			return true;
+		}
 
 		mode_info.pending_seq.clear();
-		return true;
+		return true; // return true to consume the wrong key
 	}
 }
 
@@ -393,11 +402,12 @@ fn is_in_table(table: &mlua::Table, key: &str)
 		let tmp;
 		if let Ok((t, _)) = pairs
 		{tmp = t}
+		else {return false;}
 
 		//what the hell is this bullshit??
 		//i really hate these kind of
 		//stupid superdense oneliner
-		if tmp.starts_with(key) && key.as_bytes()
+		if tmp.starts_with(key) && tmp.as_bytes()
 		.get(key.len()) == Some(&b' ')
 		{return true;}
 	}
