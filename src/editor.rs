@@ -21,6 +21,9 @@ pub struct ModeInfo
 	pub cur_mode: Option<String>,
 	pub prev_mode: Option<String>,
 	pub change_count: usize,
+	
+	pub pending_seq: String,
+	pub sequences: Option<mlua::Table>,
 }
 
 pub struct Editor
@@ -79,6 +82,9 @@ impl Editor
 			cur_mode: None,
 			prev_mode: None,
 			change_count: 0,
+
+			pending_seq: String::new(),
+			sequences: None,
 		};
 		
 		let cur_info = CursorInfo{
@@ -134,6 +140,11 @@ impl Editor
 	{
 		self.mode_info.cur_mode = Some(mode_name.to_string());
 		self.mode_info.change_count += 1;
+
+		self.mode_info.pending_seq.clear();
+
+		let sequences_table = self.get_mode_table(mode_name)
+		.and_then(|t| t.get::<mlua::Table>("sequences").ok());
 	}
 	
 	pub fn save_mode(&mut self, mode_name: &str)
@@ -257,10 +268,14 @@ impl Editor
 		if let Some(s) = keyevent_to_string(event.code, event.modifiers)
 		{key_str = s;}
 		else {return;}
-		
+
 		let mode_before = self.mode_info.change_count;
 		
-		let mut handled = self.call_keymap(&key_str);
+		let mut handled = self.process_sequences(&key_str);
+
+		if (!handled)
+		{handled = self.call_keymap(&key_str);}
+
 		if (!handled)
 		{handled = self.call_default(&key_str);}
 		
@@ -329,4 +344,63 @@ impl Editor
 	{
 		self.cur_info.selecting = false;
 	}
+
+	fn process_sequences(&mut self, key_seqs: &str) -> bool
+	{
+		let mode_info = &mut self.mode_info;
+		let sequences = match mode_info.sequences
+		{
+			Some(s) => s,
+			None => return false,
+		};
+
+		if mode_info.pending_seq.is_empty()
+		{
+			mode_info.pending_seq = key_seqs().to_string();
+		}
+		else
+		{
+			mode_info.pending_seq.push(' ');
+			mode_info.pending_seq.push_str(key_seqs);
+		}
+
+		let pending_seq = &mode_info.pending_seq;
+		let pending_func;
+
+		if let Ok(func) = sequences.get::<mlua::Function>(pending_seq.as_string)
+		{pending_func = func;}
+		else {return false;}
+
+		if let Err(err) = pending_func.call::<()>(())
+		{
+			eprintln!("Sequence action error: {err}");
+		}
+		else {return true;}
+
+		if is_in_table(&sequences, pending_seq)
+		{return true;}
+
+		mode_info.pending_seq.clear();
+		return true;
+	}
+}
+
+fn is_in_table(table: &mlua::Table, key: &str)
+-> bool
+{
+	for pairs in table.pairs::<String, mlua::Value>()
+	{
+		let tmp;
+		if let Ok((t, _)) = pairs
+		{tmp = t}
+
+		//what the hell is this bullshit??
+		//i really hate these kind of
+		//stupid superdense oneliner
+		if tmp.starts_with(key) && key.as_bytes()
+		.get(key.len()) == Some(&b' ')
+		{return true;}
+	}
+
+	false
 }
