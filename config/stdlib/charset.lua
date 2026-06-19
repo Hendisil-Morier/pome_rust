@@ -3,8 +3,8 @@
 
 local function make_charset(str)
   local set = {}
-  for i = 1, #str do
-    set[string.byte(str, i)] = true
+  for _, cp in utf8.codes(str) do
+    set[utf8.char(cp)] = true
   end
   return set
 end

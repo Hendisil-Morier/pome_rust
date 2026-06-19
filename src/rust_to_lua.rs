@@ -46,12 +46,12 @@ mod helpers
 		loop
 		{
 			let cond;
-			if (forward)
+			if forward 
 			{cond = i >= logic_len;}
 			else
 			{cond = i == usize::MAX;}
 			
-			if (cond) {break;}
+			if cond  {break;}
 			
 			let c;
 			if let Some(t) = editor.buffer.get_char(i)
@@ -60,7 +60,7 @@ mod helpers
 			
 			let in_set = charset.contains_key(c)?;
 			
-			if (in_set == want_in_set)
+			if in_set == want_in_set 
 			{
 				result_pos = editor.abspos_to_repos(i);
 				let result = [
@@ -70,10 +70,10 @@ mod helpers
 				return Ok(mlua::MultiValue::from_iter(result));
 			}
 			
-			if (forward) {i+=1;}
+			if forward  {i+=1;}
 			else
 			{
-				if (i == 0) {break;}
+				if i == 0  {break;}
 				i-=1;
 			}
 		}

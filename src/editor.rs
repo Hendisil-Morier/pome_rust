@@ -262,7 +262,7 @@ impl Editor
 {
 	pub fn process_key(&mut self, event: KeyEvent)
 	{
-		if (!event.is_press() && !event.is_repeat())
+		if !event.is_press() && !event.is_repeat() 
 		{return;}
 		
 		let key_str: String;
@@ -275,13 +275,13 @@ impl Editor
 		
 		let mut handled = self.process_sequences(&key_str);
 
-		if (!handled)
+		if !handled 
 		{handled = self.call_keymap(&key_str);}
 
-		if (!handled)
+		if !handled 
 		{handled = self.call_default(&key_str);}
 		
-		if (!handled) {/*TODO: handling empty mode table*/}
+		if !handled  {/*TODO: handling empty mode table*/}
 		
 		let mode_unchanged = mode_before == self.mode_info.change_count;
 		
@@ -301,7 +301,7 @@ impl Editor
 		}
 		else {saved_is_major = false;}
 		
-		if (mode_unchanged && current_is_minor && saved_is_major)
+		if mode_unchanged && current_is_minor && saved_is_major 
 		{self.restore_mode();}
 	}
 	
@@ -310,45 +310,19 @@ impl Editor
 		let cur_pos = self.cursor_pos();
 		let screen_rows = screen_h - 1;
 		
-		if (cur_pos.y < self.row_offset)
+		if cur_pos.y < self.row_offset 
 		{self.row_offset = cur_pos.y;}
 		
-		if (cur_pos.y >= self.row_offset + screen_rows)
+		if cur_pos.y >= self.row_offset + screen_rows 
 		{self.row_offset = cur_pos.y - screen_rows + 1;}
 	}
-	
-	pub fn delete_selected(&mut self)
-	{
-		// self.buffer.delete_selected(self.cur_info.anchor);
-		if self.cur_info.selecting == false
-		{return;}
-		
-		let anchor;
-		if let Some(a) = self.cur_info.anchor
-		{anchor = a;}
-		else {return;}
-		
-		let cur_abs_pos = self.cur_info.abs_pos;
-		
-		let start = anchor.min(cur_abs_pos);
-		let end = anchor.max(cur_abs_pos);
-		
-		self.buffer.remove(start..end);
-	}
-	
-	pub fn set_anchor(&mut self, abs_pos: usize)
-	{
-		self.cur_info.anchor = Some(abs_pos);
-		self.cur_info.selecting = true;
-	}
-	
-	pub fn clear_anchor(&mut self)
-	{
-		self.cur_info.selecting = false;
-	}
 
-	fn process_sequences(&mut self, key_seqs: &str) -> bool
+	fn process_sequences(&mut self, keyseqs: &str) -> bool
 	{
+	  let key_seqs;
+		if keyseqs == " " {key_seqs = "space";}
+		else {key_seqs = keyseqs;}
+	
 		let mode_info = &mut self.mode_info;
 		let sequences = match &mode_info.sequences
 		{

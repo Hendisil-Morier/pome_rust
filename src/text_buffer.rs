@@ -70,7 +70,37 @@ impl Editor
 //editing
 impl Editor
 {
-  pub fn insert_at_cursor(&mut self, ch: char)
+	pub fn delete_selected(&mut self)
+	{
+		// self.buffer.delete_selected(self.cur_info.anchor);
+		if self.cur_info.selecting == false
+		{return;}
+		
+		let anchor;
+		if let Some(a) = self.cur_info.anchor
+		{anchor = a;}
+		else {return;}
+		
+		let cur_abs_pos = self.cur_info.abs_pos;
+		
+		let start = anchor.min(cur_abs_pos);
+		let end = anchor.max(cur_abs_pos);
+		
+		self.buffer.remove(start..end);
+	}
+	
+	pub fn set_anchor(&mut self, abs_pos: usize)
+	{
+		self.cur_info.anchor = Some(abs_pos);
+		self.cur_info.selecting = true;
+	}
+	
+	pub fn clear_anchor(&mut self)
+	{
+		self.cur_info.selecting = false;
+	}
+	
+	pub fn insert_at_cursor(&mut self, ch: char)
   {
     let cursor = &mut self.cur_info;
     
@@ -116,7 +146,10 @@ impl Editor
   pub fn backward_match(&self, from_abs: usize, matcher: char)
   -> Option<usize>
   {
-    let mut idx = from_abs;
+    if from_abs >= self.buffer.len_chars()
+    {return None;}
+    
+    let mut idx = from_abs + 1;
     let mut chars = self.buffer.chars_at(from_abs);
     
     while idx > 0

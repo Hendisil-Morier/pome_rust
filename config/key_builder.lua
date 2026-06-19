@@ -44,6 +44,7 @@ local key = setmetatable({
     backspace = "backspace",
     delete    = "delete",
     esc       = "esc",
+    space = " ",
 }, {
     __index = function(_, k)
         if modifier_set[k] then

@@ -15,11 +15,20 @@ local function make_normal_config()
       [key.i] = bind(std.safe_set_mode, "insert"),
       [key.v] = bind(std.safe_set_mode, "visual"),
       [key.w] = std.word_forward,
+      [key.b] = std.word_backward,
     },
     base
-  )
+    );
+
+  local sequences =
+    {
+      ["space e r"] = bind(pome.load_config, "config/init.lua"),
+      ["space q q"] = pome.quit_editor,
+    }
+    
   return {
     keymap = keymap,
+    sequences = sequences,
   }
 end
 
