@@ -4,7 +4,7 @@ use ratatui::Frame;
 use ratatui::layout::Position as RatPosition;
 use ratatui::style::{Color, Style};
 use ratatui::text::Span;
-use crate::editor::Editor;
+use crate::data_types::Editor;
 
 const TAB_WIDTH: usize = 2;
 

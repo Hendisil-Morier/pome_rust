@@ -1,19 +1,4 @@
-use crate::editor::Editor;
-
-pub enum Direction
-{
-	Left,
-	Right,
-	Up,
-	Down,
-}
-
-#[derive(Default, Clone, Copy)]
-pub struct Position
-{
-	pub x: usize,
-	pub y: usize,
-}
+use crate::data_types::{Direction, Editor, Position};
 
 impl Editor
 {

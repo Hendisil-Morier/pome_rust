@@ -2,7 +2,7 @@ use std::io::{BufReader, BufWriter};
 use std::fs::File;
 use ropey::Rope;
 
-use crate::editor::Editor;
+use crate::data_types::Editor;
 
 pub fn load_file(editor: &mut Editor) -> std::io::Result<()>
 {

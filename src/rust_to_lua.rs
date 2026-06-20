@@ -1,6 +1,6 @@
 mod helpers
 {
-	use crate::{editor::Editor, text_buffer::{Direction, Position}};
+	use crate::data_types::{Editor, Direction, Position};
 	use mlua::Lua;
 	
 	pub unsafe fn get_editor(lua: &Lua) -> mlua::Result<&mut Editor>
@@ -88,7 +88,7 @@ pub mod api
 	use std::path::PathBuf;
 
 use mlua::{Lua};
-	use crate::{file_handling::save_file, text_buffer::Position};
+	use crate::{file_handling::save_file, data_types::Position};
 
 	use super::helpers::*;
 	

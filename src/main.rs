@@ -9,8 +9,9 @@ mod rust_to_lua;
 mod file_handling;
 mod args_handling;
 mod render;
+mod data_types;
 
-use editor::Editor;
+use data_types::Editor;
 use lua_api::init_lua;
 use file_handling::load_file;
 use args_handling::{parse_arguments};
