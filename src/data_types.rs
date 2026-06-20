@@ -16,6 +16,49 @@ pub struct Position
 	pub y: usize,
 }
 
+#[derive(Clone, Debug)]
+pub enum Edit
+{
+  Insert {pos: usize, text: String},
+  Delete {pos: usize, text: String},
+}
+
+#[derive(Clone, Debug)]
+pub struct EditBatch
+{
+  edits: Vec<Edit>,
+  cursor_before: usize,
+  cursor_after: usize,
+}
+
+pub struct History
+{
+  batches: Vec<EditBatch>,
+  position: usize,
+  
+  //edit being accumulated, not yet committed to batches  
+  current_batch: Option<EditBatch>,
+  last_edit_time: std::time::Instant,
+  group_timeout: std::time::Duration,
+
+  explicit_group: bool,
+}
+
+impl History
+{
+  pub fn new() -> Self
+  {
+    Self
+    {
+      batches: Vec::new(),
+      position: 0,
+      current_batch: None,
+      last_edit_time: std::time::Instant::now(),
+      group_timeout: std::time::Duration::from_millis(1000),
+      explicit_group: false,
+    }
+  }
+}
 
 pub struct CursorInfo
 {
@@ -50,6 +93,7 @@ pub struct Editor
 	pub row_offset: usize,
 	pub running: bool,
 
+	history: History,
 	// pub panels: Vec<Panel>,
 }
 
@@ -91,6 +135,7 @@ impl Editor
 			cur_info,
 			row_offset,
 			running,
+			history: History::new(),
 		}
 	}
 }

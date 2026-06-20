@@ -10,6 +10,7 @@ mod file_handling;
 mod args_handling;
 mod render;
 mod data_types;
+mod history;
 
 use data_types::Editor;
 use lua_api::init_lua;
