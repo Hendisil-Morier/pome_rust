@@ -14,7 +14,11 @@ function M.delete_line()
 
   local _, y = pome.get_cursor_pos()
 
-  -- Anchor at the start of the next line (selects the whole line)
+  if y == pome.get_max_line_index() then
+    M.delete_to_line_end()
+    return
+  end
+  
   pome.set_anchor(0, y + 1)
   pome.delete_selected()
   pome.clear_anchor()

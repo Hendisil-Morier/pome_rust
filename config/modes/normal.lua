@@ -16,6 +16,9 @@ local function make_normal_config()
       [key.v] = bind(std.safe_set_mode, "visual"),
       [key.w] = std.word_forward,
       [key.b] = std.word_backward,
+      
+      [key.u] = pome.undo,
+      [key.shift.U] = pome.redo,
     },
     base
     );

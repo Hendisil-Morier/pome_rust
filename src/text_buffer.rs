@@ -1,54 +1,10 @@
-use crate::data_types::{Direction, Editor, Position};
-
-impl Editor
-{
-  pub fn max_index_lines(&self) -> usize
-  {
-    self.buffer.len_lines().saturating_sub(1)
-  }
-  
-  pub fn line_len(&self, target_line: usize) -> usize
-  {
-    let target_line = self.max_index_lines().min(target_line);
-    let line = self.buffer.line(target_line);
-    
-    line.len_chars()
-  }  
-  
-  pub fn repos_to_abspos(&self, pos: Position) -> usize
-  {
-    let max_line = self.max_index_lines();
-    let y = pos.y.min(max_line);
-    
-    let line_start = self.buffer.line_to_char(y);
-    let x = pos.x.min(self.line_len(y));
-    
-    line_start + x
-  }
-  
-  pub fn abspos_to_repos(&self, abs_pos: usize) -> Position
-  {
-    let max_line = self.max_index_lines();
-    let abs_pos = self.buffer.len_chars().min(abs_pos);
-    
-    let y = max_line.min(self.buffer.char_to_line(abs_pos));
-    let x = abs_pos - self.buffer.line_to_char(y);
-    
-    Position { x, y }
-  }
-  
-  pub fn cursor_pos(&self) -> Position
-  {
-    self.abspos_to_repos(self.cur_info.abs_pos)
-  }
-}
+use crate::data_types::{Direction, Edit, Editor, Position};
 
 //editing
 impl Editor
 {
 	pub fn delete_selected(&mut self)
 	{
-		// self.buffer.delete_selected(self.cur_info.anchor);
 		if self.cur_info.selecting == false
 		{return;}
 		
@@ -62,7 +18,16 @@ impl Editor
 		let start = anchor.min(cur_abs_pos);
 		let end = anchor.max(cur_abs_pos);
 		
+		if start == end {return;}
+		
+		let removed = self.buffer.slice(start..end).to_string();
 		self.buffer.remove(start..end);
+		//update cursor pos
+		self.cur_info.abs_pos = start;
+		
+		let record_edit = Edit::Delete { pos: start, text: removed};
+		
+		self.history.record(record_edit, cur_abs_pos, start);
 	}
 	
 	pub fn set_anchor(&mut self, abs_pos: usize)
@@ -76,27 +41,71 @@ impl Editor
 		self.cur_info.selecting = false;
 	}
 	
-	pub fn insert_at_cursor(&mut self, ch: char)
+	pub fn insert_char_at(&mut self, ch: char, pos: Position)
   {
-    let cursor = &mut self.cur_info;
+    let cur_before = self.cur_info.abs_pos;
+    let abs_pos = self.repos_to_abspos(pos);
     
-    self.buffer.insert_char(cursor.abs_pos, ch);
-    cursor.abs_pos += 1;
+    self.buffer.insert_char(abs_pos, ch);
+    
+    //if insert before cursor
+    //then update pos
+    if abs_pos < cur_before
+    {self.cur_info.abs_pos += 1;}    
+    
+    let record_edit = Edit::Insert { pos: abs_pos, text: ch.to_string() };
+    self.history.record(record_edit, cur_before, self.cur_info.abs_pos);
+  }
+  
+  pub fn insert_string_at(&mut self, text: String, pos: Position)
+  {
+    let cur_before = self.cur_info.abs_pos;
+    let abs_pos = self.repos_to_abspos(pos);
+    
+    self.buffer.insert(abs_pos, &text);
+    
+    //if insert before cursor
+    //then update pos
+    if abs_pos < cur_before
+    {self.cur_info.abs_pos += text.chars().count();}    
+    
+    let record_edit = Edit::Insert { pos: abs_pos, text};
+    self.history.record(record_edit, cur_before, self.cur_info.abs_pos);
   }
   
   pub fn delete_after(&mut self)
   {
-    let cursor = &mut self.cur_info;
+    let cur_before = self.cur_info.abs_pos;
+    if cur_before >= self.buffer.len_chars()
+    {return;}
     
-    self.buffer.remove(cursor.abs_pos .. cursor.abs_pos+1);
+    //im fairly sure it wouldnt panic
+    //well we 'bout to find out
+    let removed = self.buffer.char(cur_before).to_string();
+    
+    self.buffer.remove(cur_before.. cur_before+1);
+    
+    let record_edit = Edit::Delete { pos: cur_before, text: removed};
+    
+    self.history.record(record_edit, cur_before, cur_before);
   }
   
   pub fn delete_before(&mut self)
   {
     let cursor = &mut self.cur_info;
+    let cur_before = cursor.abs_pos;
+    if cur_before == 0
+    {return;}
     
-    self.buffer.remove(cursor.abs_pos.saturating_sub(1) .. cursor.abs_pos);
-    cursor.abs_pos = cursor.abs_pos.saturating_sub(1);
+    //it wont panic it wont panic 
+    //it wont panic it wont panic 
+    let removed = self.buffer.char(cur_before - 1).to_string();
+    
+    self.buffer.remove(cursor.abs_pos - 1 .. cursor.abs_pos);
+    cursor.abs_pos = cursor.abs_pos - 1;
+    
+    let record_edit = Edit::Delete { pos: cur_before, text: removed};
+    self.history.record(record_edit, cur_before, cur_before);
   }
 }
 

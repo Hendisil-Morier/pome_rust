@@ -38,11 +38,35 @@ pub fn lua_quit_editor(lua: &Lua, _: ())
 	return Ok(());
 }
 
-pub fn lua_insert_char(lua: &Lua, ch: char) 
+pub fn lua_insert_char(lua: &Lua,
+  (ch, x, y): (char, Option<usize>, Option<usize>)) 
 -> mlua::Result<()>
 {
 	let editor = unsafe {get_editor_mut(lua)?};
-	editor.insert_at_cursor(ch);
+	let cur_pos = editor.cursor_pos();
+	
+	let x = x.unwrap_or(cur_pos.x);
+	let y = y.unwrap_or(cur_pos.y);
+	
+	let pos = Position{x, y};
+	
+	editor.insert_char_at(ch, pos);
+	return Ok(());
+}
+
+pub fn lua_insert_string(lua: &Lua,
+  (text, x, y): (String, Option<usize>, Option<usize>)) 
+-> mlua::Result<()>
+{
+	let editor = unsafe {get_editor_mut(lua)?};
+	let cur_pos = editor.cursor_pos();
+	
+	let x = x.unwrap_or(cur_pos.x);
+	let y = y.unwrap_or(cur_pos.y);
+	
+	let pos = Position{x, y};
+	
+	editor.insert_string_at(text, pos);
 	return Ok(());
 }
 
@@ -353,4 +377,64 @@ pub fn lua_render(lua: &Lua, _: ()) -> mlua::Result<()>
 	{eprintln!("render error: {e}");}
 
 	return Ok(());
+}
+
+pub fn lua_undo(lua: &Lua, _: ())
+-> mlua::Result<()>
+{
+  let editor = unsafe {get_editor_mut(lua)?};
+  
+  editor.undo();
+  
+  Ok(())
+}
+
+pub fn lua_redo(lua: &Lua, _: ())
+-> mlua::Result<()>
+{
+  let editor = unsafe {get_editor_mut(lua)?};
+  
+  editor.redo();
+  
+  Ok(())
+}
+
+pub fn lua_begin_undo_group(lua: &Lua, _: ())
+-> mlua::Result<bool>
+{
+  let editor = unsafe{get_editor_mut(lua)?};
+  
+  let result = editor.history.begin_group();
+  
+  Ok(result)
+}
+
+pub fn lua_end_undo_group(lua: &Lua, _: ())
+->mlua::Result<bool>
+{
+  let editor = unsafe{get_editor_mut(lua)?};
+  
+  let result = editor.history.end_group();
+  
+  Ok(result)
+}
+
+pub fn lua_can_undo(lua: &Lua, _:())
+->mlua::Result<bool>
+{
+  let editor = unsafe{get_editor(lua)?};
+  
+  let result = editor.history.can_undo();
+  
+  Ok(result)
+}
+
+pub fn lua_can_redo(lua: &Lua, _:())
+->mlua::Result<bool>
+{
+  let editor = unsafe{get_editor(lua)?};
+  
+  let result = editor.history.can_redo();
+  
+  Ok(result)
 }

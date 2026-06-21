@@ -56,6 +56,9 @@ fn main() -> io::Result<()>
     
     let lua = &editor.lua;
     let pome: mlua::Table = lua.globals().get("pome").expect("pome table missing");
+    
+    //every editing logic will be living in lua
+    //the pome.main() function will be the only entry point
     let main_fn: mlua::Function = pome.get("main").expect("pome.main not defined");
     let result = main_fn.call::<()>(());
     

@@ -118,3 +118,46 @@ pub fn match_set_impl(lua: &Lua,
 	let result = [mlua::Value::Nil];
 	return Ok(mlua::MultiValue::from_iter(result));
 }
+
+impl Editor
+{
+  pub fn max_index_lines(&self) -> usize
+  {
+    self.buffer.len_lines().saturating_sub(1)
+  }
+  
+  pub fn line_len(&self, target_line: usize) -> usize
+  {
+    let target_line = self.max_index_lines().min(target_line);
+    let line = self.buffer.line(target_line);
+    
+    line.len_chars()
+  }  
+  
+  pub fn repos_to_abspos(&self, pos: Position) -> usize
+  {
+    let max_line = self.max_index_lines();
+    let y = pos.y.min(max_line);
+    
+    let line_start = self.buffer.line_to_char(y);
+    let x = pos.x.min(self.line_len(y));
+    
+    line_start + x
+  }
+  
+  pub fn abspos_to_repos(&self, abs_pos: usize) -> Position
+  {
+    let max_line = self.max_index_lines();
+    let abs_pos = self.buffer.len_chars().min(abs_pos);
+    
+    let y = max_line.min(self.buffer.char_to_line(abs_pos));
+    let x = abs_pos - self.buffer.line_to_char(y);
+    
+    Position { x, y }
+  }
+  
+  pub fn cursor_pos(&self) -> Position
+  {
+    self.abspos_to_repos(self.cur_info.abs_pos)
+  }
+}

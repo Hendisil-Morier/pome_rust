@@ -27,22 +27,35 @@ pub enum Edit
 #[derive(Clone, Debug)]
 pub struct EditBatch
 {
-  edits: Vec<Edit>,
-  cursor_before: usize,
-  cursor_after: usize,
+  pub(crate) edits: Vec<Edit>,
+  pub(crate) cursor_before: usize,
+  pub(crate) cursor_after: usize,
+}
+
+impl EditBatch
+{
+  pub(crate) fn new(cursor_before: usize) -> Self
+  {
+    Self
+    {
+      edits: Vec::new(),
+      cursor_after: cursor_before,
+      cursor_before,
+    }
+  }
 }
 
 pub struct History
 {
-  batches: Vec<EditBatch>,
-  position: usize,
-  
-  //edit being accumulated, not yet committed to batches  
-  current_batch: Option<EditBatch>,
-  last_edit_time: std::time::Instant,
-  group_timeout: std::time::Duration,
+  pub(crate) batches: Vec<EditBatch>,
+  pub(crate) position: usize,
 
-  explicit_group: bool,
+  //edit being accumulated, not yet committed to batches
+  pub(crate) current_batch: Option<EditBatch>,
+  pub(crate) last_edit_time: std::time::Instant,
+  pub(crate) group_timeout: std::time::Duration,
+
+  pub(crate) explicit_group: bool,
 }
 
 impl History
@@ -55,7 +68,7 @@ impl History
       position: 0,
       current_batch: None,
       last_edit_time: std::time::Instant::now(),
-      group_timeout: std::time::Duration::from_millis(1000),
+      group_timeout: std::time::Duration::from_millis(200),
       explicit_group: false,
     }
   }
@@ -84,14 +97,14 @@ pub struct Editor
 	pub row_offset: usize,
 	pub running: bool,
 
-	history: History,//in construction
+	pub(crate) history: History,//in construction
 	// pub panels: Vec<Panel>,
 }
 
 impl Editor
 {
-    
-	pub fn new(filename: Option<PathBuf>, config_dir: PathBuf, config_file: PathBuf)	
+
+	pub fn new(filename: Option<PathBuf>, config_dir: PathBuf, config_file: PathBuf)
 	-> Self
 	{
 		let lua = mlua::Lua::new();
@@ -99,7 +112,7 @@ impl Editor
 		// let dim = Dimension::default();
 		let row_offset = 0;
 		let running = false;
-		
+
 		// let mode_info = ModeInfo{
 		// 	cur_mode: None,
 		// 	prev_mode: None,
@@ -108,13 +121,13 @@ impl Editor
 		// 	pending_seq: String::new(),
 		// 	sequences: None,
 		// };
-		
+
 		let cur_info = CursorInfo{
 			abs_pos: 0,
 			anchor: None,
 			selecting: false,
 		};
-		
+
 		return Self{
 			filename,
 			config_dir,
