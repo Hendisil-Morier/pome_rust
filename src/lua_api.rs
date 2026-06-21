@@ -37,7 +37,6 @@ fn register_primitives(lua: &Lua, table: &mlua::Table) -> mlua::Result<()> {
         ("set_anchor",              lua_set_anchor),
         ("clear_anchor",            lua_clear_anchor),
         ("delete_selected",         lua_delete_selected),
-        ("load_config",             lua_load_config),
         ("save_file",               lua_save_file),
         ("get_line_end",            lua_get_line_end),
         ("get_cursor_pos",          lua_get_cursor_pos),

@@ -10,6 +10,7 @@ pub unsafe fn get_editor(lua: &Lua) -> mlua::Result<&Editor>
  	return Err(mlua::Error::runtime("no editor found in registry"));
 }
 
+#[allow(clippy::mut_from_ref)]
 pub unsafe fn get_editor_mut(lua: &Lua) -> mlua::Result<&mut Editor>
 {
  	let tmp = lua.app_data_ref::<*mut Editor>();

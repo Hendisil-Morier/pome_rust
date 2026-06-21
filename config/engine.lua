@@ -1,7 +1,7 @@
--- engine.lua  (CORE_LUA)
- 
+-- engine.lua
+
 pome.modes = {}
-pome.mode_state = pome.mode_state or {
+pome.mode_state = {
     cur_mode    = nil,
     prev_mode   = nil,
     pending_seq = "",
@@ -141,10 +141,10 @@ function pome.statusline()
     local fname = pome.get_filename() or "[No Name]"
     local x, y = pome.get_cursor_pos()
     local ln, col = (y or 0) + 1, (x or 0) + 1
-    return string.format(" %s | %s Ln %d, Col %d ", mode, fname, ln, col)
+    return string.format(" %s | %s | Ln %d, Col %d ", mode, fname, ln, col)
 end
 
-function pome.main()
+function pome.main() --main entry from the core
   pome.update_scroll()
   pome.render()
   while pome.is_running() do

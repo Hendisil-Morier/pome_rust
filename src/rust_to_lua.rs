@@ -5,7 +5,7 @@ use mlua::{Lua};
 use crate::data_types::RenderView;
 use crate::{render::render, file_handling::save_file, data_types::Position};
 
-use crate::helpers::{self, *};
+use crate::helpers::{*};
 
 pub fn lua_move_cursor(lua: &Lua, (dir, times): (String, i64)) -> mlua::Result<()>
 {
@@ -157,22 +157,6 @@ pub fn lua_save_file(lua: &Lua, _:()) -> mlua::Result<()>
 	return Ok(());
 }
 
-pub fn lua_load_config(lua: &Lua, filename: Option<String>)
--> mlua::Result<()>
-{
-	let editor = unsafe {get_editor(lua)?};
-	
-	let path = match filename
-		{
-			Some(f) => f,
-			None => editor.config_file.to_string_lossy().to_string(),
-		};
-	
-	lua.load(std::path::Path::new(&path)).exec()?;
-	
-	return Ok(());
-}
-
 pub fn lua_set_filename(lua: &Lua, filename: String)
 -> mlua::Result<()>
 {
@@ -303,7 +287,7 @@ pub fn lua_backward_match_notset(lua: &Lua,
 	return match_set_impl(lua, (charset, from_x, from_y), false, false);
 }
 
-pub fn lua_next_key(lua: &Lua, _: ()) -> mlua::Result<Option<String>>
+pub fn lua_next_key(_: &Lua, _: ()) -> mlua::Result<Option<String>>
 {
   let event = crossterm::event::read()?;
   
@@ -312,7 +296,7 @@ pub fn lua_next_key(lua: &Lua, _: ()) -> mlua::Result<Option<String>>
     if !k.is_press() && !k.is_repeat()
     {return Ok(None);}
     
-    return Ok(helpers::keyevent_to_string(k.code, k.modifiers))
+    return Ok(keyevent_to_string(k.code, k.modifiers))
   }
   
   return Ok(None);

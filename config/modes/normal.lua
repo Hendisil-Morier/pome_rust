@@ -22,7 +22,7 @@ local function make_normal_config()
 
   local sequences =
     {
-      ["space e r"] = bind(pome.load_config, "config/init.lua"),
+      ["space e r"] = bind(dofile, "config/init.lua"),
       ["space q q"] = pome.quit_editor,
     }
     
