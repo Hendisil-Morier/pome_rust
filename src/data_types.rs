@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use ratatui::DefaultTerminal;
 use ropey::Rope;
 
 pub enum Direction
@@ -67,16 +68,6 @@ pub struct CursorInfo
 	pub selecting: bool,
 }
 
-pub struct ModeInfo
-{
-	pub cur_mode: Option<String>,
-	pub prev_mode: Option<String>,
-	pub change_count: usize,
-	
-	pub pending_seq: String,
-	pub sequences: Option<mlua::Table>,
-}
-
 pub struct Editor
 {
 	pub filename: Option<PathBuf>,
@@ -85,15 +76,15 @@ pub struct Editor
 	pub lua: mlua::Lua,
 
 	pub buffer: ropey::Rope,
+	pub terminal: Option<DefaultTerminal>,
 	// pub dim: Dimension,
 
-	pub mode_info: ModeInfo,
 	pub cur_info: CursorInfo,
 
 	pub row_offset: usize,
 	pub running: bool,
 
-	history: History,
+	history: History,//in construction
 	// pub panels: Vec<Panel>,
 }
 
@@ -109,14 +100,14 @@ impl Editor
 		let row_offset = 0;
 		let running = false;
 		
-		let mode_info = ModeInfo{
-			cur_mode: None,
-			prev_mode: None,
-			change_count: 0,
+		// let mode_info = ModeInfo{
+		// 	cur_mode: None,
+		// 	prev_mode: None,
+		// 	change_count: 0,
 
-			pending_seq: String::new(),
-			sequences: None,
-		};
+		// 	pending_seq: String::new(),
+		// 	sequences: None,
+		// };
 		
 		let cur_info = CursorInfo{
 			abs_pos: 0,
@@ -130,12 +121,24 @@ impl Editor
 			config_file,
 			lua,
 			buffer,
+			terminal: None,
 			// dim,
-			mode_info,
+			// mode_info,
 			cur_info,
 			row_offset,
 			running,
 			history: History::new(),
 		}
 	}
+}
+
+pub struct RenderView<'a>
+{
+  pub buffer: &'a ropey::Rope,
+  pub cursor_abs: usize,
+  pub cursor_pos: Position,
+  pub anchor: Option<usize>,
+  pub selecting: bool,
+  pub row_offset: usize,
+  pub status_line: &'a str,
 }

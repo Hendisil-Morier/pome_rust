@@ -22,7 +22,7 @@ end
 
 -- Insert a newline at the cursor (splits the line)
 function M.insert_newline()
-  pome.insert_newlines(1)
+  pome.insert_char('\n')
 end
 
 -- Simple character deletion (forward and backward)

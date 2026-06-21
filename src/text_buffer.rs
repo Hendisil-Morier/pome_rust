@@ -95,8 +95,8 @@ impl Editor
   {
     let cursor = &mut self.cur_info;
     
-    self.buffer.remove(cursor.abs_pos-1 .. cursor.abs_pos);
-    cursor.abs_pos -= 1;
+    self.buffer.remove(cursor.abs_pos.saturating_sub(1) .. cursor.abs_pos);
+    cursor.abs_pos = cursor.abs_pos.saturating_sub(1);
   }
 }
 
@@ -195,4 +195,24 @@ impl Editor
     
     cursor.abs_pos = abs_pos;
   }
+}
+
+impl Editor
+{
+	pub fn quit(&mut self)
+	{
+		self.running = false;
+	}
+	
+	pub fn update_scroll(&mut self, screen_h: usize)
+	{
+		let cur_pos = self.cursor_pos();
+		let screen_rows = screen_h - 1;
+		
+		if cur_pos.y < self.row_offset 
+		{self.row_offset = cur_pos.y;}
+		
+		if cur_pos.y >= self.row_offset + screen_rows 
+		{self.row_offset = cur_pos.y - screen_rows + 1;}
+	}
 }

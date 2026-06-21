@@ -49,17 +49,13 @@ function pome.move_cursor_to(x, y) end
 --- Exit the editor (sets running flag to false).
 function pome.quit_editor() end
 
---- Insert a single byte at the cursor.
----@param ch integer byte to insert (0-255)
+--- Insert a single char at the cursor.
+---@param ch string char to insert
 function pome.insert_char(ch) end
 
 --- Switch to a named editor mode.
 ---@param mode_name string mode identifier (e.g. "normal", "insert")
 function pome.set_mode(mode_name) end
-
---- Insert one or more newline (`\n`) bytes.
----@param times integer number of newlines
-function pome.insert_newlines(times) end
 
 --- Store the current mode as the "previous" mode (used by minor modes).
 ---@param mode_name string mode name to save
@@ -94,7 +90,7 @@ function pome.get_line_end(line) end
 --- Get the byte at a given position, or nil if out of bounds.
 ---@param x integer? column (default current)
 ---@param y integer? line (default current)
----@return integer? byte value or nil
+---@return string? char or nil
 function pome.char_at(x, y) end
 
 --- Return the highest line index (total number of newline-separated lines minus one).

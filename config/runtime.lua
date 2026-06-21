@@ -1,10 +1,8 @@
 -- config/runtime.lua
 
 -- Global mode registry
-modes = {}
-
 function define_mode(name, config)
-    modes[name] = config
+    pome.modes[name] = config
 end
 
 -- Helpers

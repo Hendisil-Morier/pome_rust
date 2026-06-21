@@ -1,28 +1,28 @@
 //TODO: rewrite the entire thing once the panel system mature
 
 use ratatui::Frame;
-use ratatui::layout::Position as RatPosition;
+use ratatui::layout::{Position as RatPosition, Rect};
 use ratatui::style::{Color, Style};
-use ratatui::text::Span;
-use crate::data_types::Editor;
+use ratatui::widgets::Paragraph;
+use crate::data_types::{RenderView};
 
 const TAB_WIDTH: usize = 2;
 
-pub fn render(frame: &mut Frame, editor: &Editor)
+pub fn render(frame: &mut Frame, view: &RenderView)
 {
-    render_buffer(frame, editor);
-    render_status_bar(frame, editor);
+    render_buffer(frame, view);
+    render_status_bar(frame, view);
 }
 
 /// Compute the screen column of the cursor by expanding tabs
-fn visual_x(editor: &Editor, cursor_abs: usize, cursor_y: usize) -> usize
+fn visual_x(view: &RenderView, cursor_abs: usize, cursor_y: usize) -> usize
 {
     // Get the start of the line the cursor is on
-    let line_start = editor.buffer.line_to_char(cursor_y);
+    let line_start = view.buffer.line_to_char(cursor_y);
 
     let mut col = 0;
     for i in line_start..cursor_abs {
-        let byte = editor.buffer.get_char(i);
+        let byte = view.buffer.get_char(i);
         match byte {
             Some('\t') => {
                 // Advance to next tab stop
@@ -43,21 +43,21 @@ fn visual_x(editor: &Editor, cursor_abs: usize, cursor_y: usize) -> usize
     col
 }
 
-fn render_buffer(frame: &mut Frame, editor: &Editor)
+fn render_buffer(frame: &mut Frame, view: &RenderView)
 {
     let area = frame.area();
     let screen_rows = area.height as usize - 1;
     let buf = frame.buffer_mut();
 
-    let logic_len = editor.buffer.len_chars();
-    let cursor_abs = editor.cur_info.abs_pos;
+    let logic_len = view.buffer.len_chars();
+    let cursor_abs = view.cursor_abs;
     
     let anchor;
     let select_start: i64;
     let select_end: i64;
     let has_anchor;
 
-    if let Some(a) = editor.cur_info.anchor
+    if let Some(a) = view.anchor
     {
       anchor = a;
       select_start = anchor.min(cursor_abs) as i64;
@@ -76,7 +76,7 @@ fn render_buffer(frame: &mut Frame, editor: &Editor)
 
     for i in 0..logic_len
     {
-        let c = match editor.buffer.get_char(i)
+        let c = match view.buffer.get_char(i)
         {
             Some(b) => b,
             None    => break,
@@ -89,12 +89,12 @@ fn render_buffer(frame: &mut Frame, editor: &Editor)
             continue;
         }
 
-        let visible = screen_y >= editor.row_offset
-            && screen_y < editor.row_offset + screen_rows;
+        let visible = screen_y >= view.row_offset
+            && screen_y < view.row_offset + screen_rows;
 
         if !visible { continue; }
 
-        let in_selection = editor.cur_info.selecting && has_anchor
+        let in_selection = view.selecting && has_anchor
             && i as i64 >= select_start
             && (i as i64) < select_end;
 
@@ -110,7 +110,7 @@ fn render_buffer(frame: &mut Frame, editor: &Editor)
                 {
                     let cell = buf.cell_mut(RatPosition {
                         x: screen_x as u16,
-                        y: (screen_y - editor.row_offset) as u16,
+                        y: (screen_y - view.row_offset) as u16,
                     });
 
                     if let Some(cell) = cell
@@ -128,7 +128,7 @@ fn render_buffer(frame: &mut Frame, editor: &Editor)
         {
             let cell = buf.cell_mut(RatPosition {
                 x: screen_x as u16,
-                y: (screen_y - editor.row_offset) as u16,
+                y: (screen_y - view.row_offset) as u16,
             });
 
             if let Some(cell) = cell
@@ -142,54 +142,27 @@ fn render_buffer(frame: &mut Frame, editor: &Editor)
     }
 
     // ------- cursor placement (fixed) -------
-    let cur_pos = editor.cursor_pos();
-    let cursor_visual_x = visual_x(editor, cursor_abs, cur_pos.y);
+    let cur_pos = view.cursor_pos;
+    let cursor_visual_x = visual_x(view, cursor_abs, cur_pos.y);
 
     frame.set_cursor_position(RatPosition {
         x: cursor_visual_x as u16,
-        y: (cur_pos.y - editor.row_offset) as u16,
+        y: (cur_pos.y - view.row_offset) as u16,
     });
 }
 
-fn render_status_bar(frame: &mut Frame, editor: &Editor)
-{
+fn render_status_bar(frame: &mut Frame, view: &RenderView) {
     let area = frame.area();
-    let cur_pos = editor.cursor_pos();
 
-    let mode = editor.mode_info.cur_mode
-        .as_deref()
-        .unwrap_or("---");
-
-    let filename = editor.filename
-        .as_ref()
-        .and_then(|p| p.to_str())
-        .unwrap_or("[no file]");
-
-    let status = format!(
-        "{} | {} : {} | file: {}",
-        mode,
-        cur_pos.y + 1,
-        cur_pos.x + 1,
-        filename,
-    );
-
-    let y = area.height - 1;
-    let style = Style::default()
-        .fg(Color::Black)
-        .bg(Color::White);
-
-    let span = Span::styled(status, style);
-    let buf = frame.buffer_mut();
-
-    for (i, c) in span.content.chars().enumerate()
-    {
-        if i >= area.width as usize { break; }
-
-        let cell = buf.cell_mut(RatPosition { x: i as u16, y });
-        if let Some(cell) = cell
-        {
-            cell.set_char(c);
-            cell.set_style(style);
-        }
+    // If the terminal is too small, skip rendering the status bar.
+    if area.height < 2 {
+        return;
     }
+
+    let bottom = Rect::new(area.x, area.y + area.height - 1, area.width, 1);
+
+    let paragraph = Paragraph::new(view.status_line)
+        .style(Style::default().bg(Color::DarkGray).fg(Color::White));
+
+    frame.render_widget(paragraph, bottom);
 }

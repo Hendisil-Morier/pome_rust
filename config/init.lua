@@ -1,6 +1,7 @@
 local config_dir = pome.get_config_dir()
 package.path = config_dir .. "/?.lua;" .. config_dir .. "/?/init.lua;" .. package.path
 
+require("engine")
 require("runtime")
 
 -- Hot‑reload stdlib and modes on every config reload

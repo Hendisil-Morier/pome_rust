@@ -1,9 +1,6 @@
 use std::io;
-use crossterm::event::{self, Event};
-use ratatui::DefaultTerminal;
 
 mod text_buffer;
-mod editor;
 mod lua_api;
 mod rust_to_lua;
 mod file_handling;
@@ -11,12 +8,12 @@ mod args_handling;
 mod render;
 mod data_types;
 mod history;
+mod helpers;
 
 use data_types::Editor;
 use lua_api::init_lua;
 use file_handling::load_file;
 use args_handling::{parse_arguments};
-use render::render;
 
 fn main() -> io::Result<()>
 {
@@ -54,29 +51,18 @@ fn main() -> io::Result<()>
     load_file(&mut editor)?;
     editor.move_cursor_to(0);
     editor.running = true;
-
-    let mut terminal = ratatui::init();
-    let result = run(&mut terminal, &mut editor);
+    
+    editor.terminal = Some(ratatui::init());
+    
+    let lua = &editor.lua;
+    let pome: mlua::Table = lua.globals().get("pome").expect("pome table missing");
+    let main_fn: mlua::Function = pome.get("main").expect("pome.main not defined");
+    let result = main_fn.call::<()>(());
+    
     ratatui::restore();
-
-    return result;
-}
-
-fn run(terminal: &mut DefaultTerminal, editor: &mut Editor) -> io::Result<()>
-{
-    while editor.running
-    {
-        terminal.draw(|frame| {
-            render(frame, editor);
-        })?;
-
-        if let Event::Key(key_event) = event::read()?
-        {
-            editor.process_key(key_event);
-        }
-
-        editor.update_scroll(terminal.size()?.height as usize);
-    }
-
+    
+    if let Err(e) = result
+    { eprintln!("fatal error in pome.main: {e}"); std::process::exit(1);}
+      
     return Ok(());
 }
