@@ -32,6 +32,7 @@ local function make_normal_config()
   return {
     keymap = keymap,
     sequences = sequences,
+    on_enter = pome.set_cursor_shape("block"),
   }
 end
 

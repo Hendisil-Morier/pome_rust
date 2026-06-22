@@ -36,12 +36,12 @@ impl EditBatch
 {
   pub(crate) fn new(cursor_before: usize) -> Self
   {
-    Self
+    return Self
     {
       edits: Vec::new(),
       cursor_after: cursor_before,
       cursor_before,
-    }
+    };
   }
 }
 
@@ -49,9 +49,9 @@ pub struct History
 {
   pub(crate) batches: Vec<EditBatch>,
   pub(crate) position: usize,
-
   //edit being accumulated, not yet committed to batches
   pub(crate) current_batch: Option<EditBatch>,
+  
   pub(crate) last_edit_time: std::time::Instant,
   pub(crate) group_timeout: std::time::Duration,
 

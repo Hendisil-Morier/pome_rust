@@ -72,6 +72,9 @@ fn register_primitives(lua: &Lua, table: &mlua::Table) -> mlua::Result<()> {
         ("end_undo_group",          lua_end_undo_group),        
         ("can_undo", lua_can_undo),
         ("can_redo", lua_can_redo),
+        ("set_undo_timeout", lua_set_undo_timeout),
+        
+        ("set_cursor_shape", lua_set_cursor_shape),
     ]);
 
     return Ok(());

@@ -1,5 +1,7 @@
 use std::path::PathBuf;
+use std::time::Duration;
 
+use crossterm::cursor::SetCursorStyle;
 use crossterm::event::Event;
 use mlua::{Lua};
 use crate::data_types::RenderView;
@@ -437,4 +439,36 @@ pub fn lua_can_redo(lua: &Lua, _:())
   let result = editor.history.can_redo();
   
   Ok(result)
+}
+
+pub fn lua_set_undo_timeout(lua: &Lua, timeout:u64)
+->mlua::Result<()>
+{
+  let editor = unsafe{get_editor_mut(lua)?};
+  
+  editor.history.set_group_timeout(Duration::from_millis(timeout));
+  
+  Ok(())
+}
+
+pub fn lua_set_cursor_shape(_: &Lua, shape: String)
+->mlua::Result<()>
+{
+  let style = match shape.as_str()
+    {
+      "block" => SetCursorStyle::SteadyBlock,
+      "bar" => SetCursorStyle::SteadyBar,
+      "underline" => SetCursorStyle::SteadyUnderScore,
+      
+      "block_blink" => SetCursorStyle::BlinkingBlock,
+      "bar_blink" => SetCursorStyle::BlinkingBar,
+      "underline_blink" => SetCursorStyle::BlinkingUnderScore,
+      
+      _ => return Err(mlua::Error::runtime(format!("unknown cursor shape: {shape}"))),
+    };
+  
+  let result = crossterm::execute!(std::io::stdout(), style)
+    .map_err(|e| mlua::Error::runtime(e.to_string()));
+  
+  return result;
 }

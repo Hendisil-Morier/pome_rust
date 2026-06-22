@@ -1,11 +1,16 @@
-use std::time::{Instant};
+use std::time::{Duration, Instant};
 
 use crate::data_types::{Edit, EditBatch, Editor, History};
 
 //helpers
 impl History
 {
-  /*get the edit vector*/
+  pub fn set_group_timeout(&mut self, timeout: Duration)
+  {
+    self.group_timeout = timeout;
+  }
+  
+  /*get the last edit*/
   fn last_edit(&self)
   -> Option<&Edit>
   {
