@@ -17,6 +17,11 @@ local function make_normal_config()
       [key.w] = std.word_forward,
       [key.b] = std.word_backward,
       
+      [key.o] = function()
+        std.cursor_line_end()
+        std.insert_newline()
+      end,
+      
       [key.u] = pome.undo,
       [key.shift.U] = pome.redo,
     },

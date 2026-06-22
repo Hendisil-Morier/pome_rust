@@ -126,13 +126,22 @@ impl Editor
     self.buffer.len_lines().saturating_sub(1)
   }
   
+  // didnt count newline
   pub fn line_len(&self, target_line: usize) -> usize
   {
     let target_line = self.max_index_lines().min(target_line);
-    let line = self.buffer.line(target_line);
     
-    line.len_chars()
-  }  
+    let line = self.buffer.line(target_line);
+    let is_trailing_newline = line.chars().last() == Some('\n');
+
+    let line_len = line.len_chars().saturating_sub
+    (
+      if is_trailing_newline {1}
+      else {0}
+    );
+    
+    line_len
+  }
   
   pub fn repos_to_abspos(&self, pos: Position) -> usize
   {

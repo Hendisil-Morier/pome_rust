@@ -27,6 +27,7 @@ end
 -- Insert a newline at the cursor (splits the line)
 function M.insert_newline()
   pome.insert_char('\n')
+  motion.cursor_down()
 end
 
 -- Simple character deletion (forward and backward)
