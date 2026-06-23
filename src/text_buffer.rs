@@ -105,7 +105,7 @@ impl Editor
     cursor.abs_pos = cursor.abs_pos - 1;
     
     let record_edit = Edit::Delete { pos: cur_before, text: removed};
-    self.history.record(record_edit, cur_before, cur_before);
+    self.history.record(record_edit, cur_before, cursor.abs_pos);
   }
 }
 

@@ -12,6 +12,7 @@ local function make_normal_config()
 
       [key.d] = bind(std.enter_minor_mode, "d_pending"),
       [key.g] = bind(std.enter_minor_mode, "g_pending"),
+      [key.shift.G] = std.goto_lastline,
       [key.i] = bind(std.safe_set_mode, "insert"),
       [key.v] = bind(std.safe_set_mode, "visual"),
       [key.w] = std.word_forward,
@@ -37,7 +38,7 @@ local function make_normal_config()
   return {
     keymap = keymap,
     sequences = sequences,
-    on_enter = pome.set_cursor_shape("block"),
+    on_enter = function() pome.set_cursor_shape("block") end,
   }
 end
 

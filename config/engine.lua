@@ -103,13 +103,9 @@ function pome.process_sequences(key_str)
     local pending = state.pending_seq
     local fn = sequences[pending]
     if type(fn) == "function" then
-        if is_in_table(sequences, pending) then
-            return true
-        else
-            pcall(fn)
-            state.pending_seq = ""
-            return true
-        end
+        pcall(fn)
+        state.pending_seq = ""
+        return true
     else
         if is_in_table(sequences, pending) then
             return true

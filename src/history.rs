@@ -218,6 +218,6 @@ impl Editor
       }
     }
     
-    self.cur_info.abs_pos = batch.cursor_before.min(self.buffer.len_chars());
+    self.cur_info.abs_pos = batch.cursor_after.min(self.buffer.len_chars());
   }
 }

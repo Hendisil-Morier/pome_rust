@@ -34,7 +34,7 @@ local function pos_next(x, y)
     return x + 1, y
   end
 
-  local total_lines = pome.get_total_lines()
+  local total_lines = pome.get_max_line_index() + 1
   if y + 1 < total_lines then
     return 0, y + 1
   end
@@ -99,7 +99,7 @@ function M.goto_firstline()
 end
 
 function M.goto_lastline()
-  move_cursor_to(state.prefer_x, pome.get_total_lines() - 1)
+  move_cursor_to(state.prefer_x, pome.get_max_line_index())
 end
 
 -- =====================================================

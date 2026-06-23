@@ -90,6 +90,12 @@ fn render_buffer(frame: &mut Frame, view: &RenderView)
             continue;
         }
 
+        // Skip \r and any other control character; \t is handled separately below.
+        if c.is_control() && c != '\t'
+        {
+            continue;
+        }
+
         let visible = screen_y >= view.row_offset
             && screen_y < view.row_offset + screen_rows;
 
