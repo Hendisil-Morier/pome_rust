@@ -216,8 +216,8 @@ impl Editor
 	pub fn update_scroll(&mut self, screen_h: usize)
 	{
 		let cur_pos = self.cursor_pos();
-		let screen_rows = screen_h - 1;
-		
+		let screen_rows = screen_h.saturating_sub(1);
+
 		if cur_pos.y < self.row_offset 
 		{self.row_offset = cur_pos.y;}
 		

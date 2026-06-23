@@ -81,6 +81,11 @@ pub struct CursorInfo
 	pub selecting: bool,
 }
 
+impl CursorInfo
+{
+  
+}
+
 pub struct Editor
 {
 	pub filename: Option<PathBuf>,

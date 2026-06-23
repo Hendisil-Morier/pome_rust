@@ -46,7 +46,8 @@ fn visual_x(view: &RenderView, cursor_abs: usize, cursor_y: usize) -> usize
 fn render_buffer(frame: &mut Frame, view: &RenderView)
 {
     let area = frame.area();
-    let screen_rows = area.height as usize - 1;
+    let screen_rows = (area.height as usize)
+        .saturating_sub(1);
     let buf = frame.buffer_mut();
 
     let logic_len = view.buffer.len_chars();
@@ -147,7 +148,7 @@ fn render_buffer(frame: &mut Frame, view: &RenderView)
 
     frame.set_cursor_position(RatPosition {
         x: cursor_visual_x as u16,
-        y: (cur_pos.y - view.row_offset) as u16,
+        y: (cur_pos.y.saturating_sub(view.row_offset)) as u16,
     });
 }
 
