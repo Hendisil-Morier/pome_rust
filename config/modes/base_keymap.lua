@@ -8,7 +8,7 @@ return {
   [key.down]       = std.cursor_down,
 
   [key.esc]        = bind(safe_set_mode, "normal"),
-  [key.ctrl.r]  = bind(pome.load_config, "config/init.lua"),
+  [key.ctrl.r]  = function() dofile(pome.get_config_dir() .. "/init.lua") end,
   [key.ctrl.q]  = pome.quit_editor,
   [key.ctrl.s]  = pome.save_file,
 }

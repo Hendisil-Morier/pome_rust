@@ -41,6 +41,11 @@ pub fn parse_arguments(args: Vec<String>) -> Result<ParsedArgs, String>
     let config_file = std::fs::canonicalize(&config_file)
         .unwrap_or(config_file);
 
+    // On Windows, canonicalize() returns a \\?\-prefixed UNC path.
+    // Lua uses '?' as the module name placeholder in package.path, so the
+    // prefix corrupts path strings passed to Lua. Strip it if present.
+    let config_file = strip_unc_prefix(config_file);
+
     let parent = config_file.parent();
     
     let config_dir = match parent
@@ -50,4 +55,19 @@ pub fn parse_arguments(args: Vec<String>) -> Result<ParsedArgs, String>
     };
     
     return Ok(ParsedArgs { filename, config_file, config_dir });
+}
+
+/// Strip the `\\?\` extended-length prefix that `canonicalize` adds on Windows.
+/// On other platforms this is a no-op.
+fn strip_unc_prefix(path: PathBuf) -> PathBuf
+{
+    #[cfg(windows)]
+    {
+        let s = path.to_string_lossy();
+        if let Some(stripped) = s.strip_prefix(r"\\?\")
+        {
+            return PathBuf::from(stripped);
+        }
+    }
+    path
 }
