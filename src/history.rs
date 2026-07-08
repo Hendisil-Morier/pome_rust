@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-use crate::data_types::{Edit, EditBatch, Editor, History};
+use crate::data_types::{editor::Editor, history::{Edit, EditBatch, History}};
 
 //helpers
 impl History

@@ -1,4 +1,4 @@
-use crate::{data_types::Editor, rust_to_lua::*};
+use crate::{data_types::editor::Editor, rust_to_lua::*};
 use mlua::Lua;
 
 pub fn init_lua(editor: &mut Editor) -> mlua::Result<()>

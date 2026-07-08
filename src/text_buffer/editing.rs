@@ -1,6 +1,5 @@
-use crate::data_types::{Direction, Edit, Editor, Position};
+use crate::data_types::{editor::Editor, history::Edit, misc::Position};
 
-//editing
 impl Editor
 {
 	pub fn delete_selected(&mut self)
@@ -104,124 +103,7 @@ impl Editor
     self.buffer.remove(cursor.abs_pos - 1 .. cursor.abs_pos);
     cursor.abs_pos = cursor.abs_pos - 1;
     
-    let record_edit = Edit::Delete { pos: cur_before, text: removed};
+    let record_edit = Edit::Delete { pos: cur_before - 1, text: removed};
     self.history.record(record_edit, cur_before, cursor.abs_pos);
   }
-}
-
-//matching
-impl Editor
-{
-  pub fn forward_match(&self, from_abs: usize, matcher: char)
-  -> Option<usize>
-  {
-    let mut idx = from_abs;
-    
-    for ch in self.buffer.chars_at(from_abs)
-    {
-      if matcher == ch 
-      {return Some(idx);}
-      
-      idx += 1;
-    }
-    
-    None
-  }
-  
-  pub fn backward_match(&self, from_abs: usize, matcher: char)
-  -> Option<usize>
-  {
-    if from_abs >= self.buffer.len_chars()
-    {return None;}
-    
-    let mut idx = from_abs + 1;
-    let mut chars = self.buffer.chars_at(from_abs);
-    
-    while idx > 0
-    {
-      let ch = chars.prev()?;
-      idx -= 1;
-      
-      if ch == matcher
-      {return Some(idx);}
-    }
-    
-    None
-  }
-}
-
-//move cursor
-impl Editor
-{
-  fn move_cursor_left(&mut self, times: usize)
-  {
-    let cursor = &mut self.cur_info;
-    
-    cursor.abs_pos = cursor.abs_pos.saturating_sub(times);
-  }
-  
-  fn move_cursor_right(&mut self, times: usize)
-  {
-    let cursor = &mut self.cur_info;
-    
-    cursor.abs_pos = (cursor.abs_pos + times).min(self.buffer.len_chars());
-  }
-  
-  fn move_cursor_up(&mut self, times: usize)
-  {
-    let cur_pos = self.cursor_pos();
-    let target_y = cur_pos.y.saturating_sub(times);
-
-    let target_abs_pos = self.repos_to_abspos(Position {x: cur_pos.x, y: target_y});
-    
-    self.cur_info.abs_pos = target_abs_pos;
-  }
-  
-  fn move_cursor_down(&mut self, times: usize)
-  {
-    let cur_pos = self.cursor_pos();
-    let target_y = (cur_pos.y + times).min(self.max_index_lines());
-    
-    let target_abs_pos = self.repos_to_abspos(Position { x: cur_pos.x, y: target_y });
-    self.cur_info.abs_pos = target_abs_pos;
-  }
-  
-  pub fn move_cursor(&mut self, times: usize, dir: Direction)
-  {
-    match dir
-    {
-      Direction::Left => self.move_cursor_left(times),
-      Direction::Right => self.move_cursor_right(times),
-      Direction::Up => self.move_cursor_up(times),
-      Direction::Down => self.move_cursor_down(times),
-    }
-  }
-  
-  pub fn move_cursor_to(&mut self, abs_pos: usize)
-  {
-    let cursor = &mut self.cur_info;
-    let abs_pos = abs_pos.min(self.buffer.len_chars());
-    
-    cursor.abs_pos = abs_pos;
-  }
-}
-
-impl Editor
-{
-	pub fn quit(&mut self)
-	{
-		self.running = false;
-	}
-	
-	pub fn update_scroll(&mut self, screen_h: usize)
-	{
-		let cur_pos = self.cursor_pos();
-		let screen_rows = screen_h.saturating_sub(1);
-
-		if cur_pos.y < self.row_offset 
-		{self.row_offset = cur_pos.y;}
-		
-		if cur_pos.y >= self.row_offset + screen_rows 
-		{self.row_offset = cur_pos.y - screen_rows + 1;}
-	}
 }

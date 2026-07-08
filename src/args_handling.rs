@@ -61,13 +61,11 @@ pub fn parse_arguments(args: Vec<String>) -> Result<ParsedArgs, String>
 /// On other platforms this is a no-op.
 fn strip_unc_prefix(path: PathBuf) -> PathBuf
 {
-    #[cfg(windows)]
-    {
-        let s = path.to_string_lossy();
-        if let Some(stripped) = s.strip_prefix(r"\\?\")
-        {
-            return PathBuf::from(stripped);
-        }
-    }
-    path
+  #[cfg(windows)]
+  {
+    let s = path.to_string_lossy();
+    if let Some(stripped) = s.strip_prefix(r"\\?\")
+    {return PathBuf::from(stripped);}
+  }
+  path
 }

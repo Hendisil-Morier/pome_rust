@@ -10,7 +10,7 @@ mod data_types;
 mod history;
 mod helpers;
 
-use data_types::Editor;
+use data_types::editor::Editor;
 use lua_api::init_lua;
 use file_handling::load_file;
 use args_handling::{parse_arguments};

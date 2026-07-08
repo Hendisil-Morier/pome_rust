@@ -4,7 +4,7 @@ use ratatui::Frame;
 use ratatui::layout::{Position as RatPosition, Rect};
 use ratatui::style::{Color, Style};
 use ratatui::widgets::Paragraph;
-use crate::data_types::{RenderView};
+use crate::data_types::render::{RenderView};
 
 const TAB_WIDTH: usize = 2;
 
@@ -103,7 +103,7 @@ fn render_buffer(frame: &mut Frame, view: &RenderView)
 
         let in_selection = view.selecting && has_anchor
             && i as i64 >= select_start
-            && (i as i64) < select_end;
+            && (i as i64) <= select_end;
 
         let bg = if in_selection { Color::Blue } else { Color::Reset };
         let style = Style::default().bg(bg);

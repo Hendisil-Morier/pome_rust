@@ -13,7 +13,7 @@ local function make_insert_config()
   )
 
   return {
-    default = function(ch) std.insert_char(ch:byte()) end,
+    default = function(ch) std.insert_char(ch) end,
     keymap  = keymap,
     on_enter = function() pome.set_cursor_shape("bar_blink") end,
   }
