@@ -1,14 +1,39 @@
-use crate::data_types::misc::Position;
+use serde::Deserialize;
 
+use crate::data_types::misc::{CursorInfo};
 
-
-pub struct RenderView<'a>
+#[derive(Deserialize)]
+#[serde(untagged)]
+pub enum PanelColor
 {
-  pub buffer: &'a ropey::Rope,
-  pub cursor_abs: usize,
-  pub cursor_pos: Position,
-  pub anchor: Option<usize>,
-  pub selecting: bool,
-  pub row_offset: usize,
-  pub status_line: &'a str,
+  Name(ratatui::style::Color),
+  Rgb(u8, u8, u8),
 }
+
+type Rect = ratatui::layout::Rect;
+#[derive(Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+pub enum Panel
+{
+  Buffer
+  {
+    rect: Rect,
+    row_offset: usize,
+    #[serde(skip)]
+    cursor: Option<CursorInfo>,
+    #[serde(default = "default_tab_width")]
+    tab_width: usize, //a bit weird
+  },
+  
+  Text
+  {
+    rect: Rect,
+    #[serde(default)]
+    content: String,
+    bg: Option<PanelColor>,
+    fg: Option<PanelColor>,
+  }
+}
+
+fn default_tab_width() -> usize {4}

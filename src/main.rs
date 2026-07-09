@@ -29,32 +29,41 @@ fn main() -> io::Result<()>
         }
     };
 
-    let mut editor = Editor::new(
+    let editor = Editor::new(
         parsed.filename,
         parsed.config_dir,
-        parsed.config_file,
     );
 
-    if let Err(e) = init_lua(&mut editor)
+    let lua = mlua::Lua::new();
+
+    if let Err(e) = init_lua(&lua)
     {
         eprintln!("failed to initialize lua: {e}");
         std::process::exit(1);
     }
 
-    if let Err(e) = editor.lua.load(
-        std::path::Path::new(&editor.config_file)).exec()
+    let terminal = ratatui::init();
+    
+    let safe_editor = std::rc::Rc::new(std::cell::RefCell::new(editor));
+    let safe_term = std::rc::Rc::new(std::cell::RefCell::new(terminal));
+    
+    lua.set_app_data(safe_editor.clone());
+    lua.set_app_data(safe_term);
+
+    if let Err(e) = lua.load(
+        std::path::Path::new(&parsed.config_file)).exec()
     {
         eprintln!("failed to load config: {e}");
+        ratatui::restore();
         std::process::exit(1);
     }
 
-    load_file(&mut editor)?;
-    editor.move_cursor_to(0);
-    editor.running = true;
+    {
+        let mut e = safe_editor.borrow_mut();
+        load_file(&mut e)?;
+        e.running = true;
+    }
     
-    editor.terminal = Some(ratatui::init());
-    
-    let lua = &editor.lua;
     let pome: mlua::Table = lua.globals().get("pome").expect("pome table missing");
     
     //every editing logic will be living in lua

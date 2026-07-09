@@ -1,11 +1,11 @@
 use crossterm::cursor::SetCursorStyle;
 use crossterm::event::Event;
-use mlua::Lua;
-use crate::data_types::render::RenderView;
+use mlua::{Lua, LuaSerdeExt};
 use crate::data_types::misc::Position;
-use crate::render::render;
+use crate::data_types::render::Panel;
 use crate::helpers::{*};
-use crate::get_editor;
+use crate::render::render::render_panels;
+use crate::{get_editor, get_terminal};
 
 pub fn lua_get_line_end(lua: &Lua, lline: Option<i64>)
 -> mlua::Result<mlua::Value>
@@ -64,49 +64,36 @@ pub fn lua_next_key(_: &Lua, _: ()) -> mlua::Result<Option<String>>
   return Ok(None);
 }
 
-pub fn lua_update_scroll(lua: &Lua, _: ()) -> mlua::Result<()>
+pub fn lua_draw_panels(lua: &Lua, panels: mlua::Value) -> mlua::Result<()>
 {
-  get_editor!(mut editor from lua);
-	let height = editor.terminal.as_ref()
-		.ok_or_else(|| mlua::Error::runtime("terminal not initialized"))?
-		.size()?
-		.height as usize;
-	editor.update_scroll(height);
-	return Ok(());
+  let mut panels: Vec<Panel> = lua.from_value(panels)?;
+  
+  get_editor!(editor from lua);
+  
+  for panel in panels.iter_mut()
+  {
+    if let Panel::Buffer{cursor, ..} = panel
+    {
+      *cursor = Some(editor.cur_info.clone());
+    }
+  }
+  
+  get_terminal!(mut terminal from lua);
+  
+  let result = terminal.draw(|frame| render_panels(frame, &panels, &editor.buffer));
+  
+  if let Err(e) = result{eprintln!("render error: {e}");}
+  
+  return Ok(());
 }
 
-pub fn lua_render(lua: &Lua, _: ()) -> mlua::Result<()>
+pub fn lua_get_term_size(lua: &Lua, _:()) -> mlua::Result<(usize, usize)>
 {
-  get_editor!(mut editor from lua);
-
-	let pome: mlua::Table = lua.globals().get("pome")?;
-	let status_line: String = pome.get::<mlua::Function>("statusline")
-		.and_then(|f| f.call::<String>(()))
-		.unwrap_or_default();
-
-	let cursor_pos = editor.cursor_pos();
-	let buffer = &editor.buffer;
-	let view = RenderView {
-		cursor_abs: editor.cur_info.abs_pos,
-		cursor_pos,
-		buffer,
-		anchor: editor.cur_info.anchor,
-		selecting: editor.cur_info.selecting,
-		row_offset: editor.row_offset,
-		status_line: &status_line,
-	};
-
-	let terminal = editor.terminal.as_mut()
-		.ok_or_else(|| mlua::Error::runtime("terminal not initialized"))?;
-
-	let result = terminal.draw(|frame| {
-		render(frame, &view);
-	});
-
-	if let Err(e) = result
-	{eprintln!("render error: {e}");}
-
-	return Ok(());
+  get_terminal!(terminal from lua);
+  
+  let size = terminal.size()?;
+  
+  return Ok((size.width as usize, size.height as usize));
 }
 
 pub fn lua_set_cursor_shape(_: &Lua, shape: String)

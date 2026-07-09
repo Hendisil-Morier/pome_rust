@@ -14,6 +14,7 @@ pub struct Position
 	pub y: usize,
 }
 
+#[derive(Default, Clone)]
 pub struct CursorInfo
 {
 	pub abs_pos: usize,

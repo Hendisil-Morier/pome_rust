@@ -1,14 +1,8 @@
-use crate::{data_types::editor::Editor, rust_to_lua::*};
+use crate::rust_to_lua::*;
 use mlua::Lua;
 
-pub fn init_lua(editor: &mut Editor) -> mlua::Result<()>
+pub fn init_lua(lua: &Lua) -> mlua::Result<()>
 {
-	let editor_ptr = editor as *mut Editor;
-	
-	let lua = &editor.lua;
-	
-	lua.set_app_data(editor_ptr);
-	
 	let pome = lua.create_table()?;
 	register_primitives(lua, &pome)?;
 	
@@ -33,10 +27,10 @@ fn register_primitives(lua: &Lua, table: &mlua::Table) -> mlua::Result<()> {
         
         ("quit_editor",             lua_quit_editor),
         ("insert_char",             lua_insert_char),
-        ("insert_string", lua_insert_string),
+        ("insert_string",           lua_insert_string),
         
-        ("delete_after",     lua_delete_after),
-        ("delete_before",    lua_delete_before),
+        ("delete_after",            lua_delete_after),
+        ("delete_before",           lua_delete_before),
         
         ("set_anchor",              lua_set_anchor),
         ("clear_anchor",            lua_clear_anchor),
@@ -55,26 +49,26 @@ fn register_primitives(lua: &Lua, table: &mlua::Table) -> mlua::Result<()> {
         ("backward_match_notset",   lua_backward_match_notset),
         
         ("char_at",                 lua_char_at),
-        ("render",        lua_render),
-        ("update_scroll",  lua_update_scroll),
-        ("next_key",       lua_next_key),
-        ("is_running",     lua_is_running),
-        ("get_max_line_index",         lua_get_max_line_index),
+        ("next_key",                lua_next_key),
+        ("is_running",              lua_is_running),
+        ("get_max_line_index",      lua_get_max_line_index),
         
         ("set_config_dir",          lua_set_config_dir),
         ("get_config_dir",          lua_get_config_dir),
-        ("set_filename", lua_set_filename),
-        ("get_filename", lua_get_filename),
+        ("set_filename",            lua_set_filename),
+        ("get_filename",            lua_get_filename),
         
         ("undo",                    lua_undo),
         ("redo",                    lua_redo),
         ("begin_undo_group",        lua_begin_undo_group),
         ("end_undo_group",          lua_end_undo_group),        
-        ("can_undo", lua_can_undo),
-        ("can_redo", lua_can_redo),
-        ("set_undo_timeout", lua_set_undo_timeout),
+        ("can_undo",                lua_can_undo),
+        ("can_redo",                lua_can_redo),
+        ("set_undo_timeout",        lua_set_undo_timeout),
         
-        ("set_cursor_shape", lua_set_cursor_shape),
+        ("set_cursor_shape",        lua_set_cursor_shape),
+        ("get_term_size",           lua_get_term_size),
+        ("draw_panels",             lua_draw_panels),
     ]);
 
     return Ok(());

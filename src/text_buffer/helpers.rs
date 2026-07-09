@@ -9,18 +9,6 @@ impl Editor
 		self.running = false;
 	}
 	
-	pub fn update_scroll(&mut self, screen_h: usize)
-	{
-		let cur_pos = self.cursor_pos();
-		let screen_rows = screen_h.saturating_sub(1);
-
-		if cur_pos.y < self.row_offset 
-		{self.row_offset = cur_pos.y;}
-		
-		if cur_pos.y >= self.row_offset + screen_rows 
-		{self.row_offset = cur_pos.y - screen_rows + 1;}
-	}
-	
   pub fn max_index_lines(&self) -> usize
   {
     self.buffer.len_lines().saturating_sub(1)

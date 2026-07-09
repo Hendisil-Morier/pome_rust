@@ -29,7 +29,7 @@ pub fn lua_move_cursor_to(lua: &Lua, (x, y): (i64, i64))
 pub fn lua_get_cursor_pos(lua: &Lua, _: ())
 -> mlua::Result<(usize, usize)>
 {
-  get_editor!(mut editor from lua);
+  get_editor!(editor from lua);
 	
 	let cur_pos = editor.cursor_pos();
 	

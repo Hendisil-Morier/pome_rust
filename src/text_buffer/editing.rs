@@ -47,9 +47,9 @@ impl Editor
     
     self.buffer.insert_char(abs_pos, ch);
     
-    //if insert before cursor
+    //if insert before or at cursor
     //then update pos
-    if abs_pos < cur_before
+    if abs_pos <= cur_before
     {self.cur_info.abs_pos += 1;}    
     
     let record_edit = Edit::Insert { pos: abs_pos, text: ch.to_string() };
@@ -63,9 +63,9 @@ impl Editor
     
     self.buffer.insert(abs_pos, &text);
     
-    //if insert before cursor
+    //if insert before or at cursor
     //then update pos
-    if abs_pos < cur_before
+    if abs_pos <= cur_before
     {self.cur_info.abs_pos += text.chars().count();}    
     
     let record_edit = Edit::Insert { pos: abs_pos, text};

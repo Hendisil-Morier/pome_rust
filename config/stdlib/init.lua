@@ -5,6 +5,7 @@ local charset = require("stdlib.charset")
 local motion  = require("stdlib.motion")
 local editing = require("stdlib.editing")
 local mode    = require("stdlib.mode")
+local layout  = require("stdlib.layout")
 
 return {
   -- charset
@@ -40,4 +41,7 @@ return {
   delete_after_cursor  = editing.delete_after_cursor,
   insert_char          = editing.insert_char,
   delete_to_line_end   = editing.delete_to_line_end,  -- if you want it  
+
+  -- layout
+  layout = layout,
 }
