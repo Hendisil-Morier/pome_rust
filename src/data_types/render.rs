@@ -33,6 +33,8 @@ pub enum Panel
     content: String,
     bg: Option<PanelColor>,
     fg: Option<PanelColor>,
+    #[serde(default)]
+    cursor: Option<(u16, u16)>,
   }
 }
 

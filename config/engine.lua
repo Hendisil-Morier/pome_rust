@@ -27,13 +27,28 @@ function pome.render()
         tab_width = 4,
     }
 
-    local status_line_panel = {
-        type = "text",
-        rect = bar_rect,
-        content = status,
-        bg = "DarkGray",
-        fg = "White",
-    }
+    local status_line_panel
+    if pome.mode_state.cur_mode == "command" then
+        local cmd_config = pome.modes["command"]
+        local text = cmd_config.get_text and cmd_config.get_text() or ""
+        
+        status_line_panel = {
+            type = "text",
+            rect = bar_rect,
+            content = ":" .. text,
+            bg = "DarkGray",
+            fg = "White",
+            cursor = { #text + 1, 0 },
+        }
+    else
+        status_line_panel = {
+            type = "text",
+            rect = bar_rect,
+            content = status,
+            bg = "DarkGray",
+            fg = "White",
+        }
+    end
 
     pome.draw_panels({ text_buffer_panel, status_line_panel })
 end

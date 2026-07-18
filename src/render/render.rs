@@ -9,6 +9,7 @@ pub fn render_text(
   content: &str,
   bg: Option<&PanelColor>,
   fg: Option<&PanelColor>,
+  cursor: Option<(u16, u16)>,
 )
 {
   let mut style = Style::default();
@@ -24,6 +25,10 @@ pub fn render_text(
       .block(ratatui::widgets::Block::default().style(style));
       
   frame.render_widget(p, rect);
+  
+  if let Some((cx, cy)) = cursor {
+    frame.set_cursor_position((rect.x + cx, rect.y + cy));
+  }
 }
 
 pub fn render_buffer
@@ -60,8 +65,8 @@ pub fn render_panels(frame: &mut Frame, panels: &[Panel], rope: &Rope)
         render_buffer(frame, &ctx, cursor.as_ref());
       },
       
-      Panel::Text { rect, content, bg, fg }
-      => render_text(frame, *rect, content, bg.as_ref(), fg.as_ref()),
+      Panel::Text { rect, content, bg, fg, cursor }
+      => render_text(frame, *rect, content, bg.as_ref(), fg.as_ref(), *cursor),
     }
   }
 }

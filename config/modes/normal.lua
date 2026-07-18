@@ -23,6 +23,9 @@ local function make_normal_config()
         std.insert_newline()
       end,
       
+      [":"] = bind(std.safe_set_mode, "command"),
+      ["shift+:"] = bind(std.safe_set_mode, "command"),
+      
       [key.u] = pome.undo,
       [key.shift.U] = pome.redo,
     },
