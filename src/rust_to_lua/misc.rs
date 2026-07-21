@@ -1,5 +1,7 @@
-use crossterm::cursor::SetCursorStyle;
-use crossterm::event::Event;
+use ratatui::crossterm::{
+    cursor::SetCursorStyle,
+    event::Event,
+};
 use mlua::{Lua, LuaSerdeExt};
 use crate::data_types::misc::Position;
 use crate::data_types::render::Panel;
@@ -51,7 +53,7 @@ pub fn lua_get_max_line_index(lua: &Lua, _: ())
 
 pub fn lua_next_key(_: &Lua, _: ()) -> mlua::Result<Option<String>>
 {
-  let event = crossterm::event::read()?;
+  let event = ratatui::crossterm::event::read()?;
   
   if let Event::Key(k) = event
   {
@@ -112,7 +114,7 @@ pub fn lua_set_cursor_shape(_: &Lua, shape: String)
       _ => return Err(mlua::Error::runtime(format!("unknown cursor shape: {shape}"))),
     };
   
-  let result = crossterm::execute!(std::io::stdout(), style)
+  let result = ratatui::crossterm::execute!(std::io::stdout(), style)
     .map_err(|e| mlua::Error::runtime(e.to_string()));
   
   return result;

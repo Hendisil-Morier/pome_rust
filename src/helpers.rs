@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::data_types::{editor::Editor, misc::{Direction}};
-use crossterm::event::{KeyCode, KeyModifiers};
+use ratatui::crossterm::event::{KeyCode, KeyModifiers};
 use mlua::Lua;
 use ratatui::DefaultTerminal;
 
